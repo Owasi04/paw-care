@@ -1,10 +1,16 @@
 import Image from "next/image";
 import Hero from "./Components/Hero/Hero";
+import WhyChooseUs from "./Components/Choose/WhyChooseUs";
+import Feedback from "./Components/Feedback/Feedback";
+import VetTeam from "./Components/VetTeam/VetTeam";
 
 export default function Home() {
   return (
-    <div className="">
+    <div className="space-y-5">
       <Hero />
+      <WhyChooseUs />
+      <Feedback />
+      <VetTeam />
     </div>
   );
 }

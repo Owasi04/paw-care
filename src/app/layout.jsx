@@ -2,6 +2,7 @@ import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "./Components/Navbar";
 import Providers from "./Providers";
+import Footer from "./Components/Footer/Footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,14 +23,16 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" crxlauncher="" className="light">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${jakarta.variable}`}>
         <Providers>
           <header className="w-full">
             <Navbar />
           </header>
           <main className="w-11/12 mx-auto">{children}</main>
-          <footer></footer>
+          <footer>
+            <Footer />
+          </footer>
         </Providers>
       </body>
     </html>

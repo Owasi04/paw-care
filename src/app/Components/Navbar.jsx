@@ -22,7 +22,7 @@ import { useCallback, useEffect, useState } from "react";
 const CollaborateButton = ({ className }) => (
   <Button
     className={cn(
-      "relative text-sm font-medium rounded-full h-10 p-1 ps-4 pe-12 group transition-all duration-500 hover:ps-12 hover:pe-4 w-fit overflow-hidden hover:bg-primary/80",
+      "relative bg-[#fca13a] text-sm font-bold rounded-full h-10 p-1 ps-4 pe-12 group transition-all duration-500 hover:ps-12 hover:pe-4 w-fit overflow-hidden hover:bg-[#ff8800]",
       className,
     )}
   >
@@ -76,7 +76,7 @@ const Navbar = () => {
           )}
         >
           <Link href="/">
-            <Image alt="Logo" src="/Logo.jpg" width={100} height={100}></Image>
+            <Image alt="Logo" src="/Logo.jpg" width={100} height={100} />
           </Link>
           <div>
             <NavigationMenu className="max-lg:hidden bg-muted p-0.5 rounded-full">
