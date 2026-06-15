@@ -4,13 +4,14 @@ import Navbar from "./Components/Navbar";
 import Providers from "./Providers";
 
 const inter = Inter({
-  weight: ["400", "500", "800", "900"],
   subsets: ["latin"],
+  variable: "--font-inter",
   display: "swap",
 });
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
+  variable: "--font-jakarta",
   display: "swap",
 });
 
@@ -21,12 +22,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html
-      lang="en"
-      crxlauncher=""
-      className="inter_b5431bfd-module__1awITq__className plus_jakarta_sans_24a75937-module__Cnjs1..."
-    >
-      <body className="">
+    <html lang="en" crxlauncher="" className="light">
+      <body className={`${inter.variable} ${jakarta.variable}`}>
         <Providers>
           <header className="w-full">
             <Navbar />

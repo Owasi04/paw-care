@@ -1,9 +1,10 @@
 import Image from "next/image";
+import Hero from "./Components/Hero/Hero";
 
 export default function Home() {
   return (
-   <div className="">
-    Hello from Next js
-   </div>
+    <div className="">
+      <Hero />
+    </div>
   );
 }
