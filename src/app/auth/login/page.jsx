@@ -4,10 +4,14 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff, Lock, Mail, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const {
     register,
@@ -24,26 +28,53 @@ export default function LoginPage() {
     setIsLoading(true);
     console.log("Form Data:", data);
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const userData = signIn("credentials", {
+        email: data.email,
+        password: data.password,
+      });
+      if (userData?.ok) {
+        console.log("SignIn Successful");
+        router.push("/");
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
     setIsLoading(false);
   };
 
-  const handleGoogleLogin = () => {
-    console.log("Redirecting to Google...");
-    // Logic for NextAuth or Firebase Google Login goes here
+  const googleLogIn = async () => {
+    try {
+      const result = await signIn("google", {
+        redirect: false,
+      });
+      if (result?.ok) {
+        toast.success("Login Successful");
+        router.push("/dashboard");
+      } else {
+        toast.error(result?.error || "Google login failed");
+      }
+    } catch (error) {
+      toast.error("Google login error");
+      console.error(error);
+    }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 rounded-3xl px-4">
       <div className="w-full max-w-md space-y-6 rounded-2xl bg-white p-8 shadow-lg border border-gray-100">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">Welcome Back</h2>
-          <p className="mt-2 text-sm text-gray-600">Please enter your details to sign in</p>
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+            Welcome Back
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Please enter your details to sign in
+          </p>
         </div>
 
         {/* Google Login Button */}
         <button
-          onClick={handleGoogleLogin}
+          onClick={googleLogIn}
           type="button"
           className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all"
         >
@@ -74,35 +105,47 @@ export default function LoginPage() {
             <span className="w-full border-t border-gray-300"></span>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-2 text-gray-500">Or continue with email</span>
+            <span className="bg-white px-2 text-gray-500">
+              Or continue with email
+            </span>
           </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Email Field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email Address</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Email Address
+            </label>
             <div className="relative mt-1">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                 <Mail size={18} />
               </div>
               <input
-                {...register("email", { 
+                {...register("email", {
                   required: "Email is required",
-                  pattern: { value: /^\S+@\S+$/i, message: "Invalid email" }
+                  pattern: { value: /^\S+@\S+$/i, message: "Invalid email" },
                 })}
                 type="email"
                 className={`block w-full rounded-lg border py-2.5 pl-10 pr-3 text-gray-900 focus:outline-none focus:ring-2 transition-all ${
-                  errors.email ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:border-blue-500 focus:ring-blue-100"
+                  errors.email
+                    ? "border-red-500 focus:ring-red-200"
+                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-100"
                 }`}
               />
             </div>
-            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
+            {errors.email && (
+              <p className="mt-1 text-xs text-red-500">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           {/* Password Field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
             <div className="relative mt-1">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                 <Lock size={18} />
@@ -111,7 +154,9 @@ export default function LoginPage() {
                 {...register("password", { required: "Password is required" })}
                 type={showPassword ? "text" : "password"}
                 className={`block w-full rounded-lg border py-2.5 pl-10 pr-10 text-gray-900 focus:outline-none focus:ring-2 transition-all ${
-                  errors.password ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:border-blue-500 focus:ring-blue-100"
+                  errors.password
+                    ? "border-red-500 focus:ring-red-200"
+                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-100"
                 }`}
               />
               <button
@@ -122,7 +167,11 @@ export default function LoginPage() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
+            {errors.password && (
+              <p className="mt-1 text-xs text-red-500">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
           <button
@@ -130,13 +179,22 @@ export default function LoginPage() {
             disabled={isLoading}
             className="flex w-full justify-center items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-70"
           >
-            {isLoading ? <Loader2 className="animate-spin" size={18} /> : "Sign In"}
+            {isLoading ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-600">
           Don't have an account?{" "}
-          <Link href="/auth/register" className="font-semibold text-blue-600 hover:underline">Sign up</Link>
+          <Link
+            href="/auth/register"
+            className="font-semibold text-blue-600 hover:underline"
+          >
+            Sign up
+          </Link>
         </p>
       </div>
     </div>

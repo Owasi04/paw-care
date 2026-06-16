@@ -13,11 +13,22 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import { ArrowUpRight, Moon, Sun, TextAlignJustify } from "lucide-react";
+import {
+  ArrowUpRight,
+  Moon,
+  Sun,
+  TextAlignJustify,
+  LogOut,
+  User,
+  Settings,
+  LayoutDashboard,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useSyncExternalStore, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const CollaborateButton = ({ className }) => (
   <Link href={`/auth/login`}>
@@ -37,15 +48,94 @@ const CollaborateButton = ({ className }) => (
   </Link>
 );
 
+const UserAvatarDropdown = () => {
+  const { data: session } = useSession();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const user = session?.user;
+
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : user?.email?.charAt(0).toUpperCase() || "U";
+
+  return (
+    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+      <DropdownMenuTrigger className="rounded-full outline-none cursor-pointer">
+        <Avatar>
+          {user?.email ? (
+            <AvatarImage
+              src={user.photoURL || user.image || undefined} // fixed: fallback to undefined
+              alt={user.name || "User"}
+            />
+          ) : null}
+          <AvatarFallback>{initials}</AvatarFallback>
+        </Avatar>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="w-56 mt-2">
+        <div className="px-2 py-1.5 border-b border-border mb-1">
+          <p className="text-sm font-medium truncate">{user?.name || "User"}</p>
+          <p className="text-xs text-muted-foreground truncate">
+            {user?.email}
+          </p>
+        </div>
+        <DropdownMenuItem>
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 w-full cursor-pointer"
+          >
+            <LayoutDashboard size={16} />
+            <span className="text-sm">Dashboard</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <Link
+            href="/settings"
+            className="flex items-center gap-2 w-full cursor-pointer"
+          >
+            <Settings size={16} />
+            <span className="text-sm">Settings</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <button
+            onClick={() => signOut()}
+            className="flex items-center gap-2 w-full cursor-pointer text-red-500 hover:text-red-600"
+          >
+            <LogOut size={16} />
+            <span className="text-sm">Sign Out</span>
+          </button>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 const Navbar = () => {
   const [sticky, setSticky] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const { theme, setTheme } = useTheme();
+  const { data: session } = useSession();
+
+  // Dynamic navigation items based on login status
   const navigationData = [
     { title: "Services", href: "/services" },
     { title: "About", href: "/about" },
     { title: "Contact", href: "/contact" },
-    { title: "Appointments", href: "/appointments" },
+    // Only show "Appointments" if user is logged in
+    ...(session?.user
+      ? [{ title: "Appointments", href: "/dashboard/my-appointments" }]
+      : []),
   ];
 
   const handleScroll = useCallback(() => {
@@ -102,9 +192,17 @@ const Navbar = () => {
               className="rounded-full bg-background border border-border p-2 flex items-center justify-center cursor-pointer transition-colors hover:bg-muted"
               aria-label="Toggle theme"
             >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              {mounted ? (
+                theme === "dark" ? (
+                  <Sun size={18} />
+                ) : (
+                  <Moon size={18} />
+                )
+              ) : (
+                <div className="w-[18px] h-[18px]" />
+              )}
             </button>
-            <CollaborateButton />
+            {session?.user ? <UserAvatarDropdown /> : <CollaborateButton />}
           </div>
 
           <div className="flex lg:hidden items-center gap-2">
@@ -113,7 +211,15 @@ const Navbar = () => {
               className="rounded-full bg-background border border-border p-2 flex items-center justify-center cursor-pointer transition-colors hover:bg-muted"
               aria-label="Toggle theme"
             >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              {mounted ? (
+                theme === "dark" ? (
+                  <Sun size={18} />
+                ) : (
+                  <Moon size={18} />
+                )
+              ) : (
+                <div className="w-[18px] h-[18px]" />
+              )}
             </button>
             <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
               <DropdownMenuTrigger className="rounded-full bg-background border border-border p-2 outline-none flex items-center justify-center cursor-pointer transition-colors">

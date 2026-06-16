@@ -1,8 +1,9 @@
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "./Components/Navbar";
-import Providers from "./Providers";
+import { Providers } from "./Providers";
 import Footer from "./Components/Footer/Footer";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,6 +35,7 @@ export default function RootLayout({ children }) {
             <Footer />
           </footer>
         </Providers>
+        <Toaster />
       </body>
     </html>
   );

@@ -1,7 +1,10 @@
-"use client"
+"use client";
 import React, { useState } from "react";
 import { Eye, EyeOff, Lock, Mail, Loader2, User, Phone } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { signIn } from "next-auth/react";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,20 +15,31 @@ const Register = () => {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm();
-
-  const password = watch("password");
+  const router = useRouter();
 
   const onSubmit = async (data) => {
     setIsLoading(true);
+    const fromData = {
+      name: data.fullName,
+      email: data.email,
+      phone: data.phone,
+      password: data.password,
+      terms: data.terms,
+    };
     try {
       // Your registration logic here
       console.log("Registration data:", data);
-      // Simulate API call
-    //   await new Promise(resolve => setTimeout(resolve, 1500));
-      // Redirect to login or dashboard
+      const result = await fetch(`/api/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fromData),
+      });
+      if (result?.ok) {
+        console.log(result);
+        router.push("/");
+      }
     } catch (error) {
       console.error("Registration error:", error);
     } finally {
@@ -34,30 +48,25 @@ const Register = () => {
   };
 
   const handleGoogleRegister = async () => {
-    setIsGoogleLoading(true);
     try {
-      // Google OAuth registration logic
-      console.log("Google registration initiated");
-      
-      // Example with Firebase
-      // const provider = new GoogleAuthProvider();
-      // await signInWithPopup(auth, provider);
-      
-      // Example with NextAuth.js
-      // await signIn('google', { callbackUrl: '/dashboard' });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const result = await signIn("google", {
+        redirect: false,
+      });
+      if (result?.ok) {
+        toast.success("Registration Successful");
+        router.push("/");
+      } else {
+        toast.error(result?.error || "Google login failed");
+      }
     } catch (error) {
-      console.error("Google registration error:", error);
-    } finally {
-      setIsGoogleLoading(false);
+      toast.error("Google login error");
+      console.error(error);
     }
   };
 
   return (
     <div>
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-8">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 rounded-3xl px-4 py-8">
         <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-lg border border-gray-100">
           <div className="text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900">
@@ -108,7 +117,9 @@ const Register = () => {
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-4 text-gray-500">or continue with email</span>
+              <span className="bg-white px-4 text-gray-500">
+                or continue with email
+              </span>
             </div>
           </div>
 
@@ -183,10 +194,10 @@ const Register = () => {
               )}
             </div>
 
-            {/* Phone Number Field (Optional) */}
+            {/* Phone Number */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Phone Number <span className="text-gray-400 text-xs">(Optional)</span>
+                Phone Number{" "}
               </label>
               <div className="relative mt-1">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
@@ -199,6 +210,7 @@ const Register = () => {
                       message: "Please enter a valid phone number",
                     },
                   })}
+                  required
                   type="tel"
                   placeholder="+1 234 567 8900"
                   className="block w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
@@ -228,8 +240,10 @@ const Register = () => {
                       message: "Password must be at least 8 characters",
                     },
                     pattern: {
-                      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                      message: "Must include uppercase, lowercase, number, and special character",
+                      value:
+                        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                      message:
+                        "Must include uppercase, lowercase, number, and special character",
                     },
                   })}
                   type={showPassword ? "text" : "password"}
@@ -254,46 +268,9 @@ const Register = () => {
                 </p>
               )}
               <p className="mt-1 text-xs text-gray-500">
-                Must be 8+ chars with uppercase, lowercase, number & special char
+                Must be 8+ chars with uppercase, lowercase, number & special
+                char
               </p>
-            </div>
-
-            {/* Confirm Password Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Confirm Password
-              </label>
-              <div className="relative mt-1">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                  <Lock size={18} />
-                </div>
-                <input
-                  {...register("confirmPassword", {
-                    required: "Please confirm your password",
-                    validate: (value) =>
-                      value === password || "Passwords do not match",
-                  })}
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  className={`block w-full rounded-lg border py-2.5 pl-10 pr-10 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all ${
-                    errors.confirmPassword
-                      ? "border-red-500 focus:ring-red-200"
-                      : "border-gray-300 focus:border-blue-500 focus:ring-blue-100"
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
             </div>
 
             {/* Terms and Conditions */}
@@ -307,11 +284,17 @@ const Register = () => {
               />
               <label className="text-sm text-gray-600">
                 I agree to the{" "}
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                <a
+                  href="#"
+                  className="font-medium text-blue-600 hover:text-blue-500"
+                >
                   Terms of Service
                 </a>{" "}
                 and{" "}
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                <a
+                  href="#"
+                  className="font-medium text-blue-600 hover:text-blue-500"
+                >
                   Privacy Policy
                 </a>
               </label>
