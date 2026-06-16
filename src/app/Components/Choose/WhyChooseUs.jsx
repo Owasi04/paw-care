@@ -1,5 +1,9 @@
-
-import { Accessibility, Atom, Heart, ShieldCheck } from "lucide-react";
+import {
+  AccessibilityIcon,
+  AtomIcon,
+  HeartIcon,
+  ShieldCheckIcon,
+} from "@animateicons/react/lucide";
 import React from "react";
 
 const WhyChooseUs = () => {
@@ -10,25 +14,29 @@ const WhyChooseUs = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-gutter">
             <div className="flex flex-col items-center text-center p-6">
               <div className="mb-4 text-primary">
-                <ShieldCheck size={80} color="#0D9488" strokeWidth={1.5}/>
+                <ShieldCheckIcon size={80} color="#0D9488" strokeWidth={1.5} />
               </div>
-              <h4 className="font-headline-md dark:text-slate-900 text-lg mb-2">Certified Vets</h4>
+              <h4 className="font-headline-md dark:text-slate-900 text-lg mb-2">
+                Certified Vets
+              </h4>
               <p className="text-on-surface-variant font-body-md text-sm">
                 Board-certified specialists for every pet need.
               </p>
             </div>
             <div className="flex flex-col items-center text-center p-6">
               <div className="mb-4 text-primary">
-               <Heart size={80} color="#0D9488" strokeWidth={1.5}/>
+                <HeartIcon size={80} color="#0D9488" strokeWidth={1.5} />
               </div>
-              <h4 className="font-headline-md dark:text-slate-900 text-lg mb-2">Gentle Handling</h4>
+              <h4 className="font-headline-md dark:text-slate-900 text-lg mb-2">
+                Gentle Handling
+              </h4>
               <p className="text-on-surface-variant font-body-md text-sm">
                 Stress-free techniques for anxious animals.
               </p>
             </div>
             <div className="flex flex-col items-center text-center p-6">
               <div className="mb-4 text-primary">
-                <Atom size={80} color="#0D9488" strokeWidth={1.5}/>
+                <AtomIcon size={80} color="#0D9488" strokeWidth={1.5} />
               </div>
               <h4 className="font-headline-md dark:text-slate-900 text-lg mb-2">
                 Modern Equipment
@@ -39,7 +47,11 @@ const WhyChooseUs = () => {
             </div>
             <div className="flex flex-col items-center text-center p-6">
               <div className="mb-4 text-primary">
-                <Accessibility size={80} color="#0D9488" strokeWidth={1.5}/>
+                <AccessibilityIcon
+                  size={80}
+                  color="#0D9488"
+                  strokeWidth={1.5}
+                />
               </div>
               <h4 className="font-headline-md dark:text-slate-900 text-lg mb-2">
                 Flexible Scheduling
