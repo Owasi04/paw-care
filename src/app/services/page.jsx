@@ -70,7 +70,7 @@ const ServiceFilters = ({
   );
 };
 
-// ─── CTA Section (Reduced Padding & Height) ───────────────────────────────────
+// ─── CTA Section ───────────────────────────────────
 
 const CTA = () => (
   <section className="rounded-[2.5rem] px-6 py-10 md:py-12 text-center bg-gradient-to-br from-teal-600 to-teal-700 dark:from-teal-950/60 dark:to-teal-900/40 text-white dark:text-slate-100 border border-transparent dark:border-teal-900/30 shadow-xl shadow-teal-900/5 transition-colors">
@@ -217,7 +217,7 @@ export default function ServicesPage() {
 
         {/* ── Services Grid (Adjusted for wider, horizontal cards) ── */}
         {!loading && !error && filtered.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {filtered.map((service) => (
               <ServiceCard key={service._id || service.id} service={service} />
             ))}
