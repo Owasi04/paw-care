@@ -3,17 +3,18 @@
 import { dbConnect } from "@/app/lib/dbConnect";
 
 export async function POST(request) {
-  const collection = dbConnect("appointments");
-  const body = await request.json();
-
   try {
-    const userMail = body.userEmail;
+    const body = await request.json();
+    const collection = dbConnect("appointments");
+
+    const userMail = body.userMail;
     if (!userMail) {
-      return Response.json({
-        status: 403,
-        message: "Unauthorized access",
-      });
+      return Response.json(
+        { status: 403, message: "Unauthorized access" },
+        { status: 403 },
+      );
     }
+
     const newAppointment = {
       userMail,
       userName: body.userName,
@@ -26,16 +27,34 @@ export async function POST(request) {
 
       // service + scheduling
       serviceName: body.serviceName,
-      vetName: body.vetName,
       appointmentDate: body.appointmentDate,
       appointmentTime: body.appointmentTime,
 
       // status & extras
       status: "pending",
     };
+
     const result = await collection.insertOne(newAppointment);
-    return Response.josn(result);
+    return Response.json(result);
   } catch (error) {
     console.log(error);
+    return Response.json(
+      { status: 500, message: error.message },
+      { status: 500 },
+    );
   }
+}
+
+export async function GET(request) {
+  const { searchParams } = request.nextUrl;
+  const collection = dbConnect("appointments");
+  const userMail = searchParams.get("userMail");
+  if (!userMail) {
+    return Response.json(
+      { status: 403, message: "Unauthorized access" },
+      { status: 403 },
+    );
+  }
+  const result = await collection.find({ userMail }).toArray();
+  return Response.json(result);
 }

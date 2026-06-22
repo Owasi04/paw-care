@@ -1,10 +1,17 @@
 import { dbConnect } from "@/app/lib/dbConnect";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const limit = request.nextUrl.searchParams.get("limit");
     const collection = dbConnect("services");
-    const services = await collection.find().toArray();
+
+    let query = collection.find();
+    if (limit) {
+      query = query.limit(Number(limit));
+    }
+
+    const services = await query.toArray();
     return NextResponse.json(services);
   } catch (error) {
     return NextResponse.json(

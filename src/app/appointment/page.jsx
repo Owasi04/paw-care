@@ -124,10 +124,9 @@ const AppointmentForm = () => {
             <input
               id="userMail"
               type="email"
-              defaultValue={user?.email}
+              value={user?.email}
               readOnly
               {...register("userMail", {
-                required: "Email is required",
                 pattern: {
                   value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                   message: "Please enter a valid email address",
@@ -150,10 +149,9 @@ const AppointmentForm = () => {
             <input
               id="userName"
               type="text"
-              defaultValue={user?.name}
+              value={user?.name}
               readOnly
               {...register("userName", {
-                required: "Full name is required",
                 minLength: {
                   value: 2,
                   message: "Name must be at least 2 characters",
