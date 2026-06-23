@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -24,17 +24,17 @@ import {
 } from "@/app/lib/serviceUtils";
 import ServiceCard from "./ServiceCard";
 
-// Expected GET /api/services/[id] response shape:
-// {
-//   _id, name, category, price, duration, petTypes: [],
-//   image, description, includes: [], preparationNotes,
-//   availability, badge,            // optional ribbon e.g. "Best Value"
-//   vet: { name, credentials, photo },
-//   relatedServices: [ { ...same shape, lighter } ]
-// }
-
-function useService(id) {
-  return useQuery({
+export default function ServiceDetails({ id }) {
+  console.log(" id of serviceDetials component ", id); //✔️ getting the id
+  const { data: session } = useSession();
+  // fetching all the details
+const {
+    data: service = null, // Change [] to null so !service correctly triggers fallback states
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["service", id],
     queryFn: async () => {
       const res = await fetch(`/api/services/${id}`);
@@ -43,12 +43,6 @@ function useService(id) {
     },
     enabled: !!id,
   });
-}
-
-export default function ServiceDetails({ id }) {
-  console.log(" id of serviceDetials component ");
-  const { data: session } = useSession();
-  const { data: service, isLoading, isError, error, refetch } = useService(id);
 
   const handleBook = () => {
     if (!session?.user) {
@@ -116,7 +110,9 @@ export default function ServiceDetails({ id }) {
         {/* ── Main content ── */}
         <div className="lg:col-span-2">
           <Badge className="gap-1 bg-teal-50 text-teal-700 hover:bg-teal-50 dark:bg-teal-950/50 dark:text-teal-400">
-            {React.createElement(getCategoryIcon(service.category), { className: "h-3.5 w-3.5" })}
+            {React.createElement(getCategoryIcon(service.category), {
+              className: "h-3.5 w-3.5",
+            })}
             {service.category}
           </Badge>
 
@@ -143,7 +139,7 @@ export default function ServiceDetails({ id }) {
             </div>
           )}
 
-          {service.includes?.length > 0 && (
+          {Array.isArray(service.includes) && service.includes.length > 0 && (
             <div className="mt-8 rounded-2xl bg-slate-50 p-6 dark:bg-slate-800/40">
               <h2 className="mb-4 text-base font-semibold text-slate-800 dark:text-slate-100">
                 What&apos;s Included
