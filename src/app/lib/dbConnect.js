@@ -10,14 +10,9 @@ const client = new MongoClient(uri, {
   },
 });
 
-// Connect once when the module loads
-let isConnected = false;
+await client.connect();
 
-export const dbConnect = async (collection) => {
-  if (!isConnected) {
-    await client.connect();
-    isConnected = true;
-  }
-  const dbName = process.env.DB_NAME;
-  return client.db(dbName).collection(collection);
+export const dbConnect = (collection) => {
+  const database = process.env.DB_NAME;
+  return client.db(database).collection(collection);
 };

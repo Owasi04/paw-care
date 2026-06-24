@@ -1,13 +1,13 @@
 "use client";
 import { useState } from "react";
 import {
-  Eye,
   XCircle,
   PawPrint,
   AlertCircle,
   ArrowRight,
   PlusCircle,
 } from "lucide-react";
+import { Trash2Icon } from "@animateicons/react/lucide";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -28,6 +28,9 @@ const STATUS_CONFIG = {
     badgeClass: "bg-rose-50 text-rose-600 border border-rose-200",
   },
 };
+
+const capitalize = (str) =>
+  str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -51,7 +54,7 @@ function PetAvatar({ petType, petName }) {
 }
 
 function StatusBadge({ status }) {
-  const config = STATUS_CONFIG[status];
+  const config = STATUS_CONFIG[capitalize(status)];
   if (!config) return null;
 
   return (
@@ -74,7 +77,7 @@ function AppointmentRow({ appointment, onView, onCancel }) {
     appointmentDate = "",
     appointmentTime = "",
     serviceName = "—",
-    status = "Pending",
+    status = "",
     userName = "",
   } = appointment;
 
@@ -144,9 +147,9 @@ function AppointmentRow({ appointment, onView, onCancel }) {
           <button
             onClick={() => onView(appointment)}
             title="View details"
-            className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all active:scale-95"
+            className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all active:scale-95 cursor-pointer"
           >
-            <Eye size={20} className="text-current" />
+            <Trash2Icon size={20} className="text-current" />
           </button>
           {status === "Pending" && (
             <button
@@ -271,7 +274,7 @@ export default function AppointmentsTable({
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-container-low border-b border-surface-variant">
-                  {["Pet", "Owner", "Service", "Date & Time", "Status", ""].map(
+                  {["Pet", "Owner", "Service", "Date & Time", "Status", "Action"].map(
                     (col, i) => (
                       <th
                         key={i}

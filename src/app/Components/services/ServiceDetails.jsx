@@ -25,11 +25,10 @@ import {
 import ServiceCard from "./ServiceCard";
 
 export default function ServiceDetails({ id }) {
-  console.log(" id of serviceDetials component ", id); //✔️ getting the id
   const { data: session } = useSession();
   // fetching all the details
-const {
-    data: service = null, // Change [] to null so !service correctly triggers fallback states
+  const {
+    data: service = null,
     isLoading,
     isError,
     error,
@@ -84,7 +83,7 @@ const {
           <Button variant="outline" onClick={() => refetch()}>
             Try Again
           </Button>
-          <Button asChild className="bg-teal-600 hover:bg-teal-700">
+          <Button aschild="true" className="bg-teal-600 hover:bg-teal-700 flex">
             <Link href="/services">Back to Services</Link>
           </Button>
         </div>
@@ -99,13 +98,6 @@ const {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:py-12">
-      <Link
-        href="/services"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-teal-600 dark:hover:text-teal-400"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to Services
-      </Link>
-
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* ── Main content ── */}
         <div className="lg:col-span-2">
@@ -196,11 +188,12 @@ const {
 
           <div className="mt-10 flex justify-center">
             <Button
-              asChild
+              aschild="true"
               variant="outline"
-              className="gap-2 rounded-full border-teal-600 text-teal-600 hover:bg-teal-50 dark:border-teal-500 dark:text-teal-400 dark:hover:bg-teal-950/40"
+              className="rounded-full border-teal-600 text-teal-600 hover:bg-teal-50 dark:border-teal-500 dark:text-teal-400 dark:hover:bg-teal-950/40"
             >
-              <Link href="/services">
+              <Link href="/services"
+              className="flex gap-2 ">
                 <ArrowLeft className="h-4 w-4" /> Back to Services
               </Link>
             </Button>
@@ -233,7 +226,7 @@ const {
                     <Clock className="mt-0.5 h-4 w-4 text-teal-600 dark:text-teal-400" />
                     <div>
                       <p className="text-xs text-muted-foreground">Duration</p>
-                      <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
                         {service.duration}
                       </p>
                     </div>
@@ -242,7 +235,7 @@ const {
                     <Tag className="mt-0.5 h-4 w-4 text-teal-600 dark:text-teal-400" />
                     <div>
                       <p className="text-xs text-muted-foreground">Price</p>
-                      <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
                         ${service.price} / session
                       </p>
                     </div>

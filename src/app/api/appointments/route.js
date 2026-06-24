@@ -1,5 +1,4 @@
 "use server";
-
 import { dbConnect } from "@/app/lib/dbConnect";
 
 export async function POST(request) {
@@ -32,6 +31,7 @@ export async function POST(request) {
 
       // status & extras
       status: "pending",
+      STATUS: 1,
     };
 
     const result = await collection.insertOne(newAppointment);

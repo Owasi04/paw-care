@@ -191,12 +191,12 @@ export default function ServiceCard({
 
       <CardFooter className="mt-auto flex items-center gap-2 border-t pt-4">
         <Button
-          asChild
+          aschild="true"
           variant="outline"
           size="sm"
-          className="flex-1 border-teal-600 text-teal-600 hover:bg-teal-50 dark:border-teal-500 dark:text-teal-400 dark:hover:bg-teal-950/40"
+          className=" border-teal-600 text-teal-600 hover:bg-teal-50 dark:border-teal-500 dark:text-teal-400 dark:hover:bg-teal-950/40"
         >
-          <Link href={`/services/${serviceId}`}>
+          <Link href={`/services/${serviceId}`} className="flex gap-1 items-center">
             View Details
             <ArrowRight className="ml-1 h-3.5 w-3.5" />
           </Link>

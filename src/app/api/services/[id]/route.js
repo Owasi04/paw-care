@@ -4,10 +4,7 @@ import { ObjectId } from "mongodb";
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
-    console.log("backend id received:", id);
-
-    const collection = await dbConnect("services");
-
+    const collection = dbConnect("services");
     let query = {};
     if (ObjectId.isValid(id)) {
       query = {

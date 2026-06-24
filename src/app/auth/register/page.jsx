@@ -16,7 +16,13 @@ const Register = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
   const router = useRouter();
 
   const onSubmit = async (data) => {

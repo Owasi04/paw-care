@@ -12,7 +12,6 @@ const OurServices = () => {
       return res.json();
     },
   });
-  //   console.log(OurServices);
 
   return (
     <div className="bg-[#e2bbac] p-4 rounded-2xl">

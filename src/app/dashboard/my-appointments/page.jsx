@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { PlusCircle } from "lucide-react";
 import AppointmentsTable from "@/app/Components/AppointmentsTable";
+import Link from "next/link";
 
 const MyAppointments = () => {
   const { data: session } = useSession();
@@ -22,20 +23,10 @@ const MyAppointments = () => {
     enabled: !!userEmail,
   });
 
-  function handleView(appointment) {
-    // TODO: open detail modal or navigate to /appointments/[id]
-    console.log("View:", appointment);
-  }
+  // console.log(userAppointments);
 
   function handleCancel(id) {
-    // TODO: call PATCH /api/appointments/[id] { status: "Cancelled" }
-    //       then invalidate the query with queryClient.invalidateQueries(...)
     console.log("Cancel:", id);
-  }
-
-  function handleBook() {
-    // TODO: navigate to /book or open booking modal
-    console.log("Open booking flow");
   }
 
   return (
@@ -51,12 +42,12 @@ const MyAppointments = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleBook}
-          className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-xl font-label-md text-label-md hover:bg-primary/90 hover:shadow-md transition-all active:scale-95 flex-shrink-0"
-        >
-          <PlusCircle size={20} className="text-current" />
-          Book Appointment
+        <button className="bg-teal-800 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-label-md text-label-md hover:shadow-md transition-all active:scale-95 flex-shrink-0">
+          {" "}
+          <Link href={`/services`} className="inline-flex items-center gap-2">
+            <PlusCircle size={20} className="text-current" />
+            Book Appointment
+          </Link>
         </button>
       </header>
 
@@ -64,9 +55,7 @@ const MyAppointments = () => {
         appointments={userAppointments ?? []}
         isLoading={isLoading}
         isError={isError}
-        onView={handleView}
         onCancel={handleCancel}
-        onBook={handleBook}
       />
     </main>
   );

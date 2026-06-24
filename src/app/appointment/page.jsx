@@ -67,23 +67,28 @@ const AppointmentForm = () => {
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      serviceName: serviceFromUrl,
+    },
+  });
 
   const router = useRouter();
 
   const onSubmit = async (data) => {
     const formData = {
-      userMail: data.userMail,
-      userName: data.userName,
+      userMail: user?.email,
+      userName: user?.name,
       userPhone: data.userPhone,
       petName: data.petName,
       petType: data.petType,
       petBreed: data.petBreed,
       appointmentTime: data.appointmentTime,
       appointmentDate: data.appointmentDate,
+      serviceName: data.serviceName,
     };
+
     try {
-      console.log(data);
       const result = await fetch(`/api/appointments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -102,6 +107,8 @@ const AppointmentForm = () => {
   const { data: session } = useSession();
 
   const user = session?.user;
+
+  const todayString = new Date().toLocaleDateString("en-CA");
 
   // ─── Render ──────────────────────────────────────────────────────────
   return (
@@ -255,9 +262,7 @@ const AppointmentForm = () => {
 
       {/* ─── Service & Scheduling ─── */}
       <div className="space-y-5">
-        <SectionHeading icon={Stethoscope}>
-          Service & Scheduling
-        </SectionHeading>
+        <SectionHeading icon={Stethoscope}>Service & Scheduling</SectionHeading>
 
         <div>
           <label htmlFor="serviceName" className={labelClass}>
@@ -266,8 +271,8 @@ const AppointmentForm = () => {
           <input
             id="serviceName"
             type="text"
+            readOnly
             placeholder="e.g. Vaccination, Grooming, Checkup"
-            defaultValue={serviceFromUrl}
             {...register("serviceName", {
               required: "Service name is required",
               minLength: {
@@ -290,6 +295,7 @@ const AppointmentForm = () => {
             <input
               id="appointmentDate"
               type="date"
+              min={todayString} // 2. Add this line to disable past dates in the UI picker
               {...register("appointmentDate", {
                 required: "Appointment date is required",
                 validate: (value) => {
