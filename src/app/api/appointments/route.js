@@ -1,5 +1,6 @@
 "use server";
 import { dbConnect } from "@/app/lib/dbConnect";
+import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
@@ -46,15 +47,16 @@ export async function POST(request) {
 }
 
 export async function GET(request) {
-  const { searchParams } = request.nextUrl;
-  const collection = dbConnect("appointments");
-  const userMail = searchParams.get("userMail");
-  if (!userMail) {
-    return Response.json(
-      { status: 403, message: "Unauthorized access" },
-      { status: 403 },
-    );
+  try {
+    const status = request.nextUrl.searchParams.get("status");
+
+    const appointmentsCollection = dbConnect("appointments");
+
+    const query = status ? { status } : {};
+
+    const result = await appointmentsCollection.find(query).toArray();
+    return NextResponse.json(result);
+  } catch (error) {
+    console.log(error.message);
   }
-  const result = await collection.find({ userMail }).toArray();
-  return Response.json(result);
 }

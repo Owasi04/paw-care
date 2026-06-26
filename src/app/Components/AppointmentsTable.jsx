@@ -7,7 +7,8 @@ import {
   ArrowRight,
   PlusCircle,
 } from "lucide-react";
-import { Trash2Icon } from "@animateicons/react/lucide";
+import { Trash2Icon, TrashIcon } from "@animateicons/react/lucide";
+import { useQuery } from "@tanstack/react-query";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -16,16 +17,16 @@ const TABS = ["All", "Pending", "Completed", "Cancelled"];
 const STATUS_CONFIG = {
   Pending: {
     label: "Pending",
-    badgeClass: "bg-amber-50 text-amber-700 border border-amber-200",
+    badgeClass: "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-900",
     dot: true,
   },
   Completed: {
     label: "Completed",
-    badgeClass: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    badgeClass: "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-900",
   },
   Cancelled: {
     label: "Cancelled",
-    badgeClass: "bg-rose-50 text-rose-600 border border-rose-200",
+    badgeClass: "bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-900",
   },
 };
 
@@ -45,7 +46,7 @@ function PetAvatar({ petType, petName }) {
     : "?";
 
   return (
-    <div className="w-10 h-10 rounded-full bg-primary-fixed-dim flex items-center justify-center flex-shrink-0 ring-2 ring-surface-variant">
+    <div className="w-10 h-10 rounded-full bg-primary-fixed-dim flex items-center justify-center flex-shrink-0 ring-2 ring-surface-variant dark:ring-surface-variant/70">
       <span className="text-on-primary-fixed text-xs font-semibold">
         {initials}
       </span>
@@ -62,14 +63,14 @@ function StatusBadge({ status }) {
       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${config.badgeClass}`}
     >
       {config.dot && (
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse" />
       )}
       {config.label}
     </span>
   );
 }
 
-function AppointmentRow({ appointment, onView, onCancel }) {
+function AppointmentRow({ appointment, onCancel }) {
   const {
     petName = "Unknown",
     petType = "",
@@ -101,7 +102,7 @@ function AppointmentRow({ appointment, onView, onCancel }) {
     : "";
 
   return (
-    <tr className="hover:bg-surface-bright transition-colors">
+    <tr className="hover:bg-surface-bright dark:hover:bg-zinc-800 transition-colors">
       {/* Pet */}
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
@@ -144,20 +145,14 @@ function AppointmentRow({ appointment, onView, onCancel }) {
       {/* Actions */}
       <td className="px-6 py-4 text-right">
         <div className="flex justify-end items-center gap-1">
-          <button
-            onClick={() => onView(appointment)}
-            title="View details"
-            className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all active:scale-95 cursor-pointer"
-          >
-            <Trash2Icon size={20} className="text-current" />
-          </button>
-          {status === "Pending" && (
+          {(status === "pending" || status === "Pending") && (
             <button
-              onClick={() => onCancel(appointment._id)}
+              onClick={() => onCancel(appointment?._id)}
               title="Cancel appointment"
-              className="p-2 rounded-lg text-on-surface-variant hover:bg-error-container hover:text-error transition-all active:scale-95"
+              className="flex items-center cursor-pointer border gap-1 p-2 rounded-lg text-on-surface-variant hover:bg-error-container hover:text-error dark:hover:bg-rose-950 dark:hover:text-rose-400 transition-all active:scale-95 border-surface-variant dark:border-zinc-700"
             >
-              <XCircle size={20} className="text-current" />
+              <span>Cancel</span>
+              <TrashIcon size={20} className="text-current" />
             </button>
           )}
         </div>
@@ -168,55 +163,40 @@ function AppointmentRow({ appointment, onView, onCancel }) {
 
 function SkeletonRows() {
   return Array.from({ length: 3 }).map((_, i) => (
-    <tr key={i} className="border-b border-surface-variant">
+    <tr key={i} className="border-b border-surface-variant dark:border-zinc-800">
       {Array.from({ length: 6 }).map((_, j) => (
         <td key={j} className="px-6 py-4">
-          <div className="h-4 bg-surface-container-low rounded-full animate-pulse w-3/4" />
+          <div className="h-4 bg-surface-container-low dark:bg-zinc-800 rounded-full animate-pulse w-3/4" />
         </td>
       ))}
     </tr>
   ));
 }
 
-function EmptyState({ onBook }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-24 text-center px-4">
-      <div className="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center mb-6">
-        <PawPrint size={48} className="text-on-surface-variant/40" />
-      </div>
-      <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">
-        No appointments here
-      </h3>
-      <p className="text-on-surface-variant font-body-md text-body-md max-w-xs mb-8">
-        Nothing scheduled in this category yet.
-      </p>
-      <button
-        onClick={onBook}
-        className="text-primary font-label-md text-label-md flex items-center gap-2 hover:underline"
-      >
-        Book an appointment
-        <ArrowRight size={16} className="text-current" />
-      </button>
-    </div>
-  );
-}
-
 // ─── Main Exported Component ────────────────────────────────────────────────
 
 export default function AppointmentsTable({
-  appointments = [],
   isLoading = false,
   isError = false,
-  onView = () => {},
   onCancel = () => {},
-  onBook = () => {},
 }) {
   const [activeTab, setActiveTab] = useState("All");
 
-  const filtered =
-    activeTab === "All"
-      ? appointments
-      : appointments.filter((a) => a.status === activeTab);
+  const { data: appointments = [] } = useQuery({
+    queryKey: ["appointments", activeTab],
+    queryFn: async () => {
+      const url =
+        activeTab === "All"
+          ? "/api/appointments"
+          : `/api/appointments?status=${activeTab.toLowerCase()}`;
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+
+  const filtered = appointments;
 
   function getCount(tab) {
     if (tab === "All") return appointments.length;
@@ -226,7 +206,7 @@ export default function AppointmentsTable({
   return (
     <>
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-surface-container-lowest border border-surface-variant rounded-xl w-fit mb-6">
+      <div className="flex gap-1 p-1 rounded-xl w-fit mb-6 border border-surface-variant dark:border-zinc-800 bg-surface-container-low dark:bg-zinc-900">
         {TABS.map((tab) => {
           const isActive = activeTab === tab;
           const count = getCount(tab);
@@ -234,10 +214,10 @@ export default function AppointmentsTable({
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-label-md text-label-md transition-all ${
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-label-md text-label-md transition-all cursor-pointer ${
                 isActive
-                  ? "bg-primary text-on-primary shadow-sm"
-                  : "text-on-surface-variant hover:bg-surface-container"
+                  ? "bg-rose-600 text-white shadow-sm border border-rose-600"
+                  : "text-on-surface-variant hover:bg-surface-container dark:hover:bg-zinc-800"
               }`}
             >
               {tab}
@@ -246,7 +226,7 @@ export default function AppointmentsTable({
                   className={`text-xs font-semibold rounded-full px-1.5 py-0.5 leading-none ${
                     isActive
                       ? "bg-white/20 text-white"
-                      : "bg-surface-container text-on-surface-variant"
+                      : "bg-surface-container dark:bg-zinc-800 text-on-surface-variant"
                   }`}
                 >
                   {count}
@@ -258,7 +238,7 @@ export default function AppointmentsTable({
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-100 dark:border-zinc-800 overflow-hidden shadow-sm">
         {isError ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-4">
             <AlertCircle size={48} className="text-error mb-4" />
@@ -273,36 +253,38 @@ export default function AppointmentsTable({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-container-low border-b border-surface-variant">
-                  {["Pet", "Owner", "Service", "Date & Time", "Status", "Action"].map(
-                    (col, i) => (
-                      <th
-                        key={i}
-                        className={`px-6 py-3.5 font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant ${
-                          i === 5 ? "text-right" : ""
-                        }`}
-                      >
-                        {col}
-                      </th>
-                    ),
-                  )}
+                <tr className="bg-surface-container-low dark:bg-zinc-950 border-b border-surface-variant dark:border-zinc-800">
+                  {[
+                    "Pet",
+                    "Owner",
+                    "Service",
+                    "Date & Time",
+                    "Status",
+                    "Action",
+                  ].map((col, i) => (
+                    <th
+                      key={i}
+                      className={`px-6 py-3.5 font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant ${
+                        i === 5 ? "text-right" : ""
+                      }`}
+                    >
+                      {col}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-variant">
+              <tbody className="divide-y divide-surface-variant dark:divide-zinc-800">
                 {isLoading ? (
                   <SkeletonRows />
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={6}>
-                      <EmptyState onBook={onBook} />
-                    </td>
+                    <td colSpan={6}></td>
                   </tr>
                 ) : (
                   filtered.map((appt) => (
                     <AppointmentRow
                       key={appt._id}
                       appointment={appt}
-                      onView={onView}
                       onCancel={onCancel}
                     />
                   ))
@@ -312,15 +294,6 @@ export default function AppointmentsTable({
           </div>
         )}
       </div>
-
-      {/* Footer count */}
-      {!isLoading && !isError && filtered.length > 0 && (
-        <p className="text-on-surface-variant text-label-sm mt-4 px-1">
-          Showing {filtered.length} appointment
-          {filtered.length !== 1 ? "s" : ""}
-          {activeTab !== "All" ? ` · ${activeTab}` : ""}
-        </p>
-      )}
     </>
   );
 }

@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export async function GET(request) {
   try {
     const limit = request.nextUrl.searchParams.get("limit");
-    const serviceCollection = await dbConnect("services");
+    const serviceCollection = dbConnect("services");
 
     let query = serviceCollection.find();
     if (limit) {

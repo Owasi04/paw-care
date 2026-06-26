@@ -4,13 +4,15 @@ import { useSession } from "next-auth/react";
 import { PlusCircle } from "lucide-react";
 import AppointmentsTable from "@/app/Components/AppointmentsTable";
 import Link from "next/link";
+import toast from "react-hot-toast";
+import { Button } from "@base-ui/react";
 
 const MyAppointments = () => {
   const { data: session } = useSession();
   const userEmail = session?.user?.email;
 
   const {
-    data: userAppointments,
+    data: userAppointments = [],
     isLoading,
     isError,
   } = useQuery({
@@ -23,11 +25,61 @@ const MyAppointments = () => {
     enabled: !!userEmail,
   });
 
-  // console.log(userAppointments);
+  const cancelAppointment = async (id) => {
+    const res = await fetch(`/api/appointments/${id}`, {
+      method: "PATCH",
+    });
+    if (!res.ok) throw new Error("Failed to cancel");
+  };
 
-  function handleCancel(id) {
-    console.log("Cancel:", id);
-  }
+  const handleCancel = (id) => {
+    if (!id) {
+      console.error("ID mismatch");
+      return;
+    }
+
+    toast.custom(
+      (t) => (
+        <div className="bg-white rounded-xl p-3 shadow-lg w-96 animate-in fade-in slide-in-from-bottom-4">
+          {/* Header */}
+          <div className="text-gray-800 mb-5">
+            <h1 className="text-lg font-semibold tracking-tight">
+              Cancel{" "}
+              <span className="text-rose-600 font-bold">Appointment?</span>
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              This action cannot be undone.
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 justify-start">
+            <Button
+              className="cursor-pointer rounded-xl px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              No, keep it
+            </Button>
+            <Button
+              className="cursor-pointer rounded-xl px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium transition-colors shadow-sm"
+              onClick={() => {
+                toast.dismiss(t.id);
+                cancelAppointment(id);
+                toast.success("Your appointment has been cancelled.");
+              }}
+            >
+              Yes, cancel
+            </Button>
+          </div>
+        </div>
+      ),
+      {
+        position: "top-right",
+        duration: 2000,
+        style: { width: "100px" },
+      },
+    );
+  };
 
   return (
     <main className="px-4 md:px-8 py-8 max-w-6xl mx-auto">
