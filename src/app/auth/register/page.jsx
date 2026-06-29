@@ -35,19 +35,35 @@ const Register = () => {
       terms: data.terms,
     };
     try {
-      // Your registration logic here
-      console.log("Registration data:", data);
       const result = await fetch(`/api/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(fromData),
       });
       if (result?.ok) {
-        console.log(result);
-        router.push("/");
+        // Auto sign-in after successful registration to create the session
+        const signInResult = await signIn("credentials", {
+          email: fromData.email,
+          password: fromData.password,
+          redirect: false,
+        });
+        if (signInResult?.ok) {
+          toast.success("Registration Successful");
+          router.push("/dashboard");
+          router.refresh();
+        } else {
+          toast.error(
+            signInResult?.error || "Account created but auto-login failed",
+          );
+          router.push("/auth/login");
+        }
+      } else {
+        const err = await result.json().catch(() => ({}));
+        toast.error(err?.message || "Registration failed");
       }
     } catch (error) {
       console.error("Registration error:", error);
+      toast.error("Registration error");
     } finally {
       setIsLoading(false);
     }

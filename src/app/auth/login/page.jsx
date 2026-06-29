@@ -26,21 +26,25 @@ export default function LoginPage() {
 
   const onSubmit = async (data) => {
     setIsLoading(true);
-    console.log("Form Data:", data);
-    // Simulate API call
     try {
-      const userData = signIn("credentials", {
+      const userData = await signIn("credentials", {
         email: data.email,
         password: data.password,
+        redirect: false,
       });
       if (userData?.ok) {
-        console.log("SignIn Successful");
-        router.push("/");
+        toast.success("Login Successful");
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        toast.error(userData?.error || "Invalid email or password");
       }
     } catch (error) {
       console.log(error.message);
+      toast.error("Login failed");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const googleLogIn = async () => {

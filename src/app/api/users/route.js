@@ -21,6 +21,7 @@ export async function POST(request) {
       name: body.name,
       email: body.email,
       password: hashPassword,
+      phone: body.phone,
       createdAt: new Date().toISOString(),
       role: "user",
     };
