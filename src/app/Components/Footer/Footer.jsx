@@ -1,7 +1,12 @@
+"use client";
 import Link from "next/link";
 import { PawPrint, Globe, Share2, Video, MapPin } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 const Footer = () => {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/dashboard")) return null;
+
   return (
     <footer className="border-t border-border bg-background mt-20 p-10">
       <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12">

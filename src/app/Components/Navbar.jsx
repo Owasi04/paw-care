@@ -19,19 +19,25 @@ import {
   Sun,
   TextAlignJustify,
   LogOut,
-  User,
-  Settings,
   LayoutDashboard,
+  Settings,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useCallback, useEffect, useSyncExternalStore, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { usePathname, useRouter } from "next/navigation";
 
 const CollaborateButton = ({ className }) => (
-  <Link href={`/auth/login`}>
+  <Link href="/auth/login">
     <Button
       className={cn(
         "relative bg-[#fca13a] text-sm font-bold rounded-full h-10 p-1 ps-4 pe-12 group transition-all duration-500 hover:ps-12 hover:pe-4 w-fit overflow-hidden hover:bg-[#ff8800]",
@@ -51,6 +57,8 @@ const CollaborateButton = ({ className }) => (
 const UserAvatarDropdown = () => {
   const { data: session } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
 
   const user = session?.user;
 
@@ -66,13 +74,11 @@ const UserAvatarDropdown = () => {
   return (
     <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
       <DropdownMenuTrigger className="rounded-full outline-none cursor-pointer">
-        <Avatar>
-          {user?.email ? (
-            <AvatarImage
-              src={user.photoURL || user.image || undefined} // fixed: fallback to undefined
-              alt={user.name || "User"}
-            />
-          ) : null}
+        <Avatar className="h-9 w-9">
+          <AvatarImage
+            src={user?.image || user?.photoURL || undefined}
+            alt={user?.name || "User"}
+          />
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
@@ -84,32 +90,41 @@ const UserAvatarDropdown = () => {
             {user?.email}
           </p>
         </div>
-        <DropdownMenuItem>
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 w-full cursor-pointer"
-          >
-            <LayoutDashboard size={16} />
-            <span className="text-sm">Dashboard</span>
-          </Link>
+
+        <DropdownMenuItem
+          onClick={() => {
+            setMenuOpen(false);
+            router.push("/dashboard");
+          }}
+          className={cn(
+            "flex items-center gap-2 w-full cursor-pointer",
+            pathname === "/dashboard" && "bg-accent",
+          )}
+        >
+          <LayoutDashboard size={16} />
+          <span className="text-sm">Dashboard</span>
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Link
-            href="/settings"
-            className="flex items-center gap-2 w-full cursor-pointer"
-          >
-            <Settings size={16} />
-            <span className="text-sm">Settings</span>
-          </Link>
+
+        <DropdownMenuItem
+          onClick={() => {
+            setMenuOpen(false);
+            router.push("/settings");
+          }}
+          className={cn(
+            "flex items-center gap-2 w-full cursor-pointer",
+            pathname === "/settings" && "bg-accent",
+          )}
+        >
+          <Settings size={16} />
+          <span className="text-sm">Settings</span>
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          <button
-            onClick={() => signOut()}
-            className="flex items-center gap-2 w-full cursor-pointer text-red-500 hover:text-red-600"
-          >
-            <LogOut size={16} />
-            <span className="text-sm">Sign Out</span>
-          </button>
+
+        <DropdownMenuItem
+          onClick={() => signOut()}
+          className="text-red-500 hover:text-red-600 focus:text-red-600 cursor-pointer"
+        >
+          <LogOut size={16} className="mr-2" />
+          <span className="text-sm">Sign Out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -119,24 +134,36 @@ const UserAvatarDropdown = () => {
 const Navbar = () => {
   const [sticky, setSticky] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const { data: session } = useSession();
+  const pathname = usePathname();
+  const router = useRouter();
+  const isDashboardRoute = pathname?.startsWith("/dashboard");
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
     () => false,
   );
-  const { theme, setTheme } = useTheme();
-  const { data: session } = useSession();
 
-  // Dynamic navigation items based on login status
-  const navigationData = [
-    { title: "Services", href: "/services" },
-    { title: "About", href: "/about" },
-    { title: "Contact", href: "/contact" },
-    // Only show "Appointments" if user is logged in
-    ...(session?.user
-      ? [{ title: "Appointments", href: "/dashboard/my-appointments" }]
-      : []),
-  ];
+  // Compute navigation items – session‑dependent
+  const navigationData = useMemo(() => {
+    const base = [
+      { title: "Services", href: "/services" },
+      { title: "About", href: "/about" },
+      { title: "Contact", href: "/contact" },
+    ];
+    if (session?.user) {
+      base.push({ title: "Appointments", href: "/dashboard/my-appointments" });
+    }
+    return base;
+  }, [session]);
+
+  // Improved isActive: matches exact or sub‑route, but avoids false positives
+  const isActive = (href) => {
+    if (!pathname) return false;
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(href + "/");
+  };
 
   const handleScroll = useCallback(() => {
     setSticky(window.scrollY >= 50);
@@ -149,12 +176,22 @@ const Navbar = () => {
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", handleResize);
-
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
     };
   }, [handleScroll, handleResize]);
+
+  // Close mobile menu on Escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
+
+  if (isDashboardRoute) return null;
 
   return (
     <div className="w-full">
@@ -163,33 +200,49 @@ const Navbar = () => {
           className={cn(
             "w-full flex items-center h-fit justify-between gap-3.5 lg:gap-6 transition-all duration-500",
             sticky
-              ? "p-2.5 bg-background/60 backdrop-blur-lg border border-border/40 shadow-2xl shadow-primary/5 rounded-full"
+              ? "p-2.5 bg-background/80 backdrop-blur-lg border border-border/40 shadow-2xl shadow-primary/5 rounded-full"
               : "bg-transparent border-transparent",
           )}
         >
-          <Link href="/">
-            <Image alt="Logo" src="/Logo.jpg" width={100} height={100} />
+          {/* Logo */}
+          <Link href="/" className="flex-shrink-0">
+            <Image
+              alt="Logo"
+              src="/Logo.jpg"
+              width={100}
+              height={100}
+              className="object-contain"
+              priority
+            />
           </Link>
-          <div>
-            <NavigationMenu className="max-lg:hidden bg-muted p-0.5 rounded-full">
-              <NavigationMenuList className="flex gap-5">
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:block flex-1">
+            <NavigationMenu className="bg-muted p-0.5 rounded-full mx-auto w-fit">
+              <NavigationMenuList className="flex gap-1.5">
                 {navigationData.map((navItem) => (
                   <NavigationMenuItem key={navItem.title}>
-                    <NavigationMenuLink
+                    <Link
                       href={navItem.href}
-                      className="px-2 lg:px-4 py-2 font-medium rounded-full text-[14px] hover:text-foreground hover:bg-background outline outline-transparent hover:outline-border hover:shadow-xs transition tracking-normal"
+                      className={cn(
+                        "px-4 py-2 font-medium rounded-full text-[14px] hover:text-foreground hover:bg-background outline outline-transparent hover:outline-border hover:shadow-xs transition tracking-normal",
+                        isActive(navItem.href) &&
+                          "bg-background text-foreground shadow-sm",
+                      )}
                     >
                       {navItem.title}
-                    </NavigationMenuLink>
+                    </Link>
                   </NavigationMenuItem>
                 ))}
               </NavigationMenuList>
             </NavigationMenu>
           </div>
-          <div className="hidden lg:flex items-center gap-2">
+
+          {/* Desktop Right Side */}
+          <div className="hidden lg:flex items-center gap-3">
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-full bg-background border border-border p-2 flex items-center justify-center cursor-pointer transition-colors hover:bg-muted"
+              className="rounded-full bg-background border border-border p-2.5 flex items-center justify-center cursor-pointer transition-colors hover:bg-muted"
               aria-label="Toggle theme"
             >
               {mounted ? (
@@ -199,16 +252,27 @@ const Navbar = () => {
                   <Moon size={18} />
                 )
               ) : (
-                <div className="w-[18px] h-[18px]" />
+                <div className="w-[18px] h-[18px]" /> // placeholder for hydration
               )}
             </button>
-            {session?.user ? <UserAvatarDropdown /> : <CollaborateButton />}
+
+            {/* Auth section – only rendered after mount to avoid flash */}
+            {mounted ? (
+              session?.user ? (
+                <UserAvatarDropdown />
+              ) : (
+                <CollaborateButton />
+              )
+            ) : (
+              <div className="h-10 w-24 rounded-full bg-muted animate-pulse" />
+            )}
           </div>
 
-          <div className="flex lg:hidden items-center gap-2">
+          {/* Mobile Right Side */}
+          <div className="flex lg:hidden items-center gap-3">
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-full bg-background border border-border p-2 flex items-center justify-center cursor-pointer transition-colors hover:bg-muted"
+              className="rounded-full bg-background border border-border p-2.5 flex items-center justify-center cursor-pointer transition-colors hover:bg-muted"
               aria-label="Toggle theme"
             >
               {mounted ? (
@@ -221,23 +285,36 @@ const Navbar = () => {
                 <div className="w-[18px] h-[18px]" />
               )}
             </button>
+
             <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-              <DropdownMenuTrigger className="rounded-full bg-background border border-border p-2 outline-none flex items-center justify-center cursor-pointer transition-colors">
+              <DropdownMenuTrigger className="rounded-full bg-background border border-border p-2.5 outline-none flex items-center justify-center cursor-pointer transition-colors hover:bg-muted">
                 <TextAlignJustify size={20} />
                 <span className="sr-only">Menu</span>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-56 mt-2">
+              <DropdownMenuContent align="end" className="w-60 mt-2">
                 {navigationData.map((item) => (
-                  <DropdownMenuItem key={item.title}>
-                    <a
-                      href={item.href}
-                      className="w-full cursor-pointer text-sm font-medium"
-                    >
-                      {item.title}
-                    </a>
+                  <DropdownMenuItem
+                    key={item.title}
+                    onClick={() => {
+                      setIsOpen(false);
+                      router.push(item.href);
+                    }}
+                    className={cn(
+                      "w-full cursor-pointer text-sm font-medium py-2",
+                      isActive(item.href) && "bg-accent",
+                    )}
+                  >
+                    {item.title}
                   </DropdownMenuItem>
                 ))}
+
+                {/* Mobile Auth Section */}
+                {mounted && !session?.user && (
+                  <div className="mt-2">
+                    <CollaborateButton className="w-full justify-center" />
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
