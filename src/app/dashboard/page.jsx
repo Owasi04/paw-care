@@ -21,9 +21,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import PetCard from "./components/petCards";
 
 // ─── Component ──────────────────────────────────────────────
 export default function DashboardPage() {
+  const { data: session } = useSession();
+  const user = session?.user;
+  const { data: ownerPets } = useQuery({
+    queryKey: ["ownerPets", user?.name],
+    queryFn: async () => {
+      const res = await fetch(
+        `/api/pets?ownerName=${encodeURIComponent(user?.name || "")}`,
+      );
+      if (!res.ok) {
+        throw new Error("Failed to fetch pets");
+      }
+      return res.json();
+    },
+    enabled: Boolean(user?.name),
+  });
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
       {/* ─── Welcome Header ─── */}
@@ -63,7 +81,7 @@ export default function DashboardPage() {
                 Total Pets
               </p>
               <p className="text-3xl font-bold text-[#171d1c] dark:text-slate-50">
-                0
+                {ownerPets?.length}
               </p>
             </div>
           </CardContent>
@@ -119,25 +137,33 @@ export default function DashboardPage() {
                 <ChevronRight className="h-4 w-4 ml-0.5" />
               </Button>
             </div>
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-                  <PawPrint className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-50">
-                  No pets added yet
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Add your first pet to get started.
-                </p>
-                <Button
-                  size="sm"
-                  className="mt-4 gap-1 bg-[#00685f] hover:bg-[#005049]"
-                >
-                  <Plus className="h-4 w-4" /> Add Pet
-                </Button>
-              </CardContent>
-            </Card>
+            {ownerPets?.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {ownerPets.map((pet) => (
+                  <PetCard key={pet?._id} pet={pet} />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                    <PawPrint className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-medium text-slate-900 dark:text-slate-50">
+                    No pets added yet
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Add your first pet to get started.
+                  </p>
+                  <Button
+                    size="sm"
+                    className="mt-4 gap-1 bg-[#00685f] hover:bg-[#005049]"
+                  >
+                    <Plus className="h-4 w-4" /> Add Pet
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </section>
 
           {/* Upcoming Appointments - Empty State */}

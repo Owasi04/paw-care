@@ -69,16 +69,16 @@ export default function DashboardLayout({ children }) {
       >
         {/* Logo */}
         <div className="flex flex-col mb-8 px-2">
-            <Link href="/" className="flex-shrink-0">
-              <Image
-                alt="Logo"
-                src="/Logo.jpg"
-                width={100}
-                height={100}
-                className="object-contain"
-                priority
-              />
-            </Link>
+          <Link href="/" className="flex-shrink-0">
+            <Image
+              alt="Logo"
+              src="/Logo.jpg"
+              width={100}
+              height={100}
+              className="object-contain"
+              priority
+            />
+          </Link>
         </div>
 
         {/* Navigation */}
@@ -102,10 +102,12 @@ export default function DashboardLayout({ children }) {
 
         {/* Book Appointment button */}
         <div className="mt-6 px-2">
-          <button className="w-full bg-[#00685f] text-white py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#005049] transition-colors shadow-sm">
-            <Plus className="h-4 w-4" />
-            Book Appointment
-          </button>
+          <Link href={`/services`}>
+            <button className="w-full bg-[#00685f] text-white py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#005049] transition-colors shadow-sm">
+              <Plus className="h-4 w-4" />
+              Book Appointment
+            </button>
+          </Link>
         </div>
 
         {/* Bottom section */}

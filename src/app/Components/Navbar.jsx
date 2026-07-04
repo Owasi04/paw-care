@@ -153,6 +153,7 @@ const Navbar = () => {
       { title: "Contact", href: "/contact" },
     ];
     if (session?.user) {
+      base.push({ title: "Pets", href: "/pets" });
       base.push({ title: "Appointments", href: "/dashboard/my-appointments" });
     }
     return base;
@@ -218,7 +219,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:block flex-1">
-            <NavigationMenu className="bg-muted p-0.5 rounded-full mx-auto w-fit">
+            <NavigationMenu className="bg-muted p-2 rounded-full mx-auto w-fit">
               <NavigationMenuList className="flex gap-1.5">
                 {navigationData.map((navItem) => (
                   <NavigationMenuItem key={navItem.title}>
