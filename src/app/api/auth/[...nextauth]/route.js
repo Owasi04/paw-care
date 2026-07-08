@@ -40,6 +40,7 @@ export const authOptions = {
             email: user.email,
             name: user.name,
             image: user.photoURL || user.image || null,
+            role: user.role || "user",
           };
         }
         return null;
@@ -69,6 +70,7 @@ export const authOptions = {
           const newUser = {
             name: user.name || "Unknown",
             email: user.email,
+            role: user.role || "user",
             photoURL: user.image || user.photoURL || null,
             createdAt: new Date().toISOString(),
           };
@@ -81,11 +83,13 @@ export const authOptions = {
         token.name = user.name || existingUser.name;
         token.photoURL =
           user.image || user.photoURL || existingUser.photoURL || null;
+        token.role = user.role || existingUser.role || "user";
       } else if (token.email) {
         const usersCollection = await dbConnect("users");
         const dbUser = await usersCollection.findOne({ email: token.email });
         if (dbUser) {
           token.photoURL = dbUser.photoURL || token.photoURL || null;
+          token.role = dbUser.role || token.role || "user";
         }
       }
       return token;
@@ -98,6 +102,7 @@ export const authOptions = {
         session.user.name = token.name;
         session.user.image = token.photoURL;
         session.user.photoURL = token.photoURL;
+        session.user.role = token.role || "user";
       }
       return session;
     },

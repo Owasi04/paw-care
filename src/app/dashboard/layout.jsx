@@ -33,7 +33,7 @@ const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { name: "My Pets", icon: PawPrint, href: "/dashboard/my-pets" },
   { name: "Appointments", icon: Calendar, href: "/dashboard/my-appointments" },
-  { name: "Health Records", icon: FileText, href: "/dashboard/records" },
+  { name: "Health Records", icon: FileText, href: "/dashboard/health-records" },
 ];
 
 export default function DashboardLayout({ children }) {

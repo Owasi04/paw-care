@@ -24,11 +24,81 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import PetCard from "./components/petCards";
+import Link from "next/link";
+
+// ─── Status styling (matches vet-passport palette) ──────────────
+const STATUS_STYLES = {
+  pending: {
+    label: "Pending",
+    className:
+      "bg-[#fea619]/10 text-[#855300] dark:bg-[#fea619]/20 dark:text-[#ffb95f]",
+  },
+  confirmed: {
+    label: "Confirmed",
+    className:
+      "bg-[#00685f]/10 text-[#00685f] dark:bg-[#00685f]/20 dark:text-[#6bd8cb]",
+  },
+  completed: {
+    label: "Completed",
+    className:
+      "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+  },
+  cancelled: {
+    label: "Cancelled",
+    className:
+      "bg-[#924628]/10 text-[#924628] dark:bg-[#924628]/20 dark:text-[#ffb59a]",
+  },
+};
+
+function getStatusStyle(status) {
+  return (
+    STATUS_STYLES[status] ?? {
+      label: status,
+      className:
+        "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+    }
+  );
+}
+
+// ─── Date/time helpers ────────────────────────────────────────
+function getAppointmentDateTime(apt) {
+  return new Date(`${apt.appointmentDate}T${apt.appointmentTime}`);
+}
+
+function formatAppointmentDate(dateStr) {
+  return new Date(`${dateStr}T00:00`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatAppointmentTime(timeStr) {
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  const d = new Date();
+  d.setHours(hours, minutes);
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+function timeAgoFromId(id) {
+  const timestamp = parseInt(String(id).substring(0, 8), 16) * 1000;
+  const diffMs = Date.now() - timestamp;
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
 
 // ─── Component ──────────────────────────────────────────────
 export default function DashboardPage() {
   const { data: session } = useSession();
   const user = session?.user;
+  console.log(user);
+
   const { data: ownerPets } = useQuery({
     queryKey: ["ownerPets", user?.name],
     queryFn: async () => {
@@ -42,6 +112,35 @@ export default function DashboardPage() {
     },
     enabled: Boolean(user?.name),
   });
+
+  const { data: userAppointments = [], isLoading: isLoadingAppointments } =
+    useQuery({
+      queryKey: ["userAppointments", user?.email],
+      queryFn: async () => {
+        const res = await fetch(
+          `/api/appointments?userMail=${encodeURIComponent(user?.email || "")}&status=pending&status=completed`,
+        );
+        if (!res.ok) throw new Error("Failed to fetch appointments");
+        return res.json();
+      },
+      enabled: Boolean(user?.email),
+    });
+
+  const upcomingAppointments = React.useMemo(() => {
+    const now = new Date();
+    return userAppointments
+      .filter(
+        (apt) =>
+          apt.status !== "cancelled" && getAppointmentDateTime(apt) >= now,
+      )
+      .sort((a, b) => getAppointmentDateTime(a) - getAppointmentDateTime(b));
+  }, [userAppointments]);
+
+  const recentActivity = React.useMemo(
+    () => userAppointments.slice(0, 4),
+    [userAppointments],
+  );
+
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
       {/* ─── Welcome Header ─── */}
@@ -57,14 +156,22 @@ export default function DashboardPage() {
         <div className="flex gap-3">
           <Button
             variant="outline"
-            className="border-[#00685f] text-[#00685f] hover:bg-[#00685f]/5 dark:border-[#6bd8cb] dark:text-[#6bd8cb] dark:hover:bg-[#6bd8cb]/10"
+            className="border-[#00685f] cursor-pointer text-[#00685f] hover:bg-[#00685f]/5 dark:border-[#6bd8cb] dark:text-[#6bd8cb] dark:hover:bg-[#6bd8cb]/10"
           >
-            <Plus className="h-4 w-4 mr-1.5" />
-            Add New Pet
+            <Link href={`/pets`} className="flex flex-row gap-2 items-center">
+              <Plus className="h-4 w-4 mr-1.5" />
+              Add New Pet
+            </Link>
           </Button>
-          <Button className="bg-[#00685f] hover:bg-[#005049] text-white dark:bg-[#00685f] dark:hover:bg-[#005049]">
-            <Calendar className="h-4 w-4 mr-1.5" />
-            Book Appointment
+          <Button className="bg-[#00685f] cursor-pointer hover:bg-[#005049] text-white dark:bg-[#00685f] dark:hover:bg-[#005049]">
+            <Link
+              href={`/services`}
+              className="flex flex-row gap-2 items-center"
+            >
+              {" "}
+              <Calendar className="h-4 w-4 mr-1.5" />
+              Book Appointment
+            </Link>
           </Button>
         </div>
       </section>
@@ -81,7 +188,7 @@ export default function DashboardPage() {
                 Total Pets
               </p>
               <p className="text-3xl font-bold text-[#171d1c] dark:text-slate-50">
-                {ownerPets?.length}
+                {ownerPets?.length ?? 0}
               </p>
             </div>
           </CardContent>
@@ -96,7 +203,7 @@ export default function DashboardPage() {
                 Upcoming Appointments
               </p>
               <p className="text-3xl font-bold text-[#171d1c] dark:text-slate-50">
-                0
+                {upcomingAppointments.length}
               </p>
             </div>
           </CardContent>
@@ -122,7 +229,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left column */}
         <div className="lg:col-span-8 space-y-6">
-          {/* My Pets - Empty State */}
+          {/* My Pets */}
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-semibold text-[#171d1c] dark:text-slate-50">
@@ -166,28 +273,69 @@ export default function DashboardPage() {
             )}
           </section>
 
-          {/* Upcoming Appointments - Empty State */}
+          {/* Upcoming Appointments */}
           <section>
             <h2 className="text-2xl font-semibold text-[#171d1c] dark:text-slate-50 mb-4">
               Upcoming Appointments
             </h2>
             <Card>
-              <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
-                  <Calendar className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  No upcoming appointments
-                </p>
+              <CardContent className="p-0 divide-y divide-[#dee4e1] dark:divide-slate-800">
+                {isLoadingAppointments ? (
+                  <div className="py-8 text-center text-sm text-muted-foreground">
+                    Loading appointments...
+                  </div>
+                ) : upcomingAppointments.length > 0 ? (
+                  upcomingAppointments.slice(0, 3).map((apt) => (
+                    <div
+                      key={apt._id}
+                      className="flex items-center justify-between p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#00685f]/10 dark:bg-[#00685f]/20 flex items-center justify-center text-[#00685f] dark:text-[#6bd8cb]">
+                          <Calendar className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-[#171d1c] dark:text-slate-50">
+                            {apt.serviceName} — {apt.petName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatAppointmentDate(apt.appointmentDate)} at{" "}
+                            {formatAppointmentTime(apt.appointmentTime)}
+                          </p>
+                        </div>
+                      </div>
+                      <span
+                        className={`text-xs font-medium px-2.5 py-1 rounded-full ${getStatusStyle(apt.status).className}`}
+                      >
+                        {getStatusStyle(apt.status).label}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+                      <Calendar className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      No upcoming appointments
+                    </p>
+                  </div>
+                )}
               </CardContent>
               <CardFooter className="border-t border-[#dee4e1] dark:border-slate-800 px-4 py-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full text-[#00685f] dark:text-[#6bd8cb]"
+                <Link
+                  href="/dashboard/my-appointments"
+                  className="w-full flex justify-center"
                 >
-                  View all appointments
-                </Button>
+                  <Button
+                    aschild="true"
+                    variant="ghost"
+                    size="sm"
+                    className=" text-[#00685f] dark:text-[#6bd8cb] cursor-pointer "
+                  >
+                    <span className="text-[16px]">View all appointments</span>
+                  </Button>
+                </Link>
               </CardFooter>
             </Card>
           </section>
@@ -202,38 +350,46 @@ export default function DashboardPage() {
                 Quick Actions
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2.5">
-              <button className="group w-full flex items-center justify-between p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-[#dee4e1] dark:border-slate-700 hover:border-[#00685f] dark:hover:border-[#6bd8cb] hover:bg-[#00685f]/5 dark:hover:bg-[#00685f]/10 transition-all">
-                <div className="flex items-center gap-3">
-                  <Plus className="h-5 w-5 text-[#00685f] dark:text-[#6bd8cb]" />
-                  <span className="text-sm font-medium text-[#171d1c] dark:text-slate-100">
-                    Add New Pet
-                  </span>
-                </div>
-                <ChevronRight className="h-5 w-5 text-[#6d7a77] dark:text-slate-500 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-              <button className="group w-full flex items-center justify-between p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-[#dee4e1] dark:border-slate-700 hover:border-[#00685f] dark:hover:border-[#6bd8cb] hover:bg-[#00685f]/5 dark:hover:bg-[#00685f]/10 transition-all">
-                <div className="flex items-center gap-3">
-                  <Download className="h-5 w-5 text-[#00685f] dark:text-[#6bd8cb]" />
-                  <span className="text-sm font-medium text-[#171d1c] dark:text-slate-100">
-                    Download Health Records
-                  </span>
-                </div>
-                <ChevronRight className="h-5 w-5 text-[#6d7a77] dark:text-slate-500 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-              <button className="group w-full flex items-center justify-between p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-[#dee4e1] dark:border-slate-700 hover:border-[#00685f] dark:hover:border-[#6bd8cb] hover:bg-[#00685f]/5 dark:hover:bg-[#00685f]/10 transition-all">
-                <div className="flex items-center gap-3">
-                  <Pill className="h-5 w-5 text-[#00685f] dark:text-[#6bd8cb]" />
-                  <span className="text-sm font-medium text-[#171d1c] dark:text-slate-100">
-                    Order Supplements
-                  </span>
-                </div>
-                <ChevronRight className="h-5 w-5 text-[#6d7a77] dark:text-slate-500 group-hover:translate-x-0.5 transition-transform" />
-              </button>
+            <CardContent className="space-y-4 pt-2">
+              {/* Add New Pet */}
+              <Button
+                asChild
+                variant="outline"
+                className="group h-14 w-full justify-between rounded-xl border border-[#dee4e1] bg-white px-5 shadow-sm transition-all hover:border-[#00685f] hover:bg-[#00685f]/5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-[#6bd8cb] dark:hover:bg-[#00685f]/10"
+              >
+                <Link href="/pets">
+                  <div className="flex items-center gap-3">
+                    <Plus className="h-5 w-5 text-[#00685f] dark:text-[#6bd8cb]" />
+                    <span className="text-base font-medium text-[#171d1c] dark:text-slate-100">
+                      Add New Pet
+                    </span>
+
+                    <ChevronRight className="h-5 w-5 text-[#6d7a77] transition-transform group-hover:translate-x-1 dark:text-slate-500" />
+                  </div>
+                </Link>
+              </Button>
+
+              {/* Download Health Records */}
+              <Button
+                asChild
+                variant="outline"
+                className="group h-14 w-full justify-between rounded-xl border border-[#dee4e1] bg-white px-5 shadow-sm transition-all hover:border-[#00685f] hover:bg-[#00685f]/5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-[#6bd8cb] dark:hover:bg-[#00685f]/10"
+              >
+                <Link href="/dashboard/health-records">
+                  <div className="flex items-center gap-3">
+                    <Download className="h-5 w-5 text-[#00685f] dark:text-[#6bd8cb]" />
+                    <span className="text-base font-medium text-[#171d1c] dark:text-slate-100">
+                      Download Health Records
+                    </span>
+
+                    <ChevronRight className="h-5 w-5 text-[#6d7a77] transition-transform group-hover:translate-x-1 dark:text-slate-500" />
+                  </div>
+                </Link>
+              </Button>
             </CardContent>
           </Card>
 
-          {/* Recent Activity - Empty State */}
+          {/* Recent Activity */}
           <Card className="border-[#dee4e1] dark:border-slate-800 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-xl font-semibold text-[#171d1c] dark:text-slate-50">
@@ -241,23 +397,60 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
-                  <Clock className="h-6 w-6 text-muted-foreground" />
+              {isLoadingAppointments ? (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  Loading activity...
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  No recent activity
-                </p>
-              </div>
+              ) : recentActivity.length > 0 ? (
+                <div className="space-y-4">
+                  {recentActivity.map((apt) => (
+                    <div key={apt._id} className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-full bg-[#00685f]/10 dark:bg-[#00685f]/20 flex items-center justify-center text-[#00685f] dark:text-[#6bd8cb] shrink-0">
+                        <Calendar className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-[#171d1c] dark:text-slate-100">
+                          Booked{" "}
+                          <span className="font-medium">{apt.serviceName}</span>{" "}
+                          for {apt.petName}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {timeAgoFromId(apt._id)}
+                        </p>
+                      </div>
+                      <span
+                        className={`text-[11px] font-medium px-2 py-0.5 rounded-full shrink-0 ${getStatusStyle(apt.status).className}`}
+                      >
+                        {getStatusStyle(apt.status).label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+                    <Clock className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    No recent activity
+                  </p>
+                </div>
+              )}
             </CardContent>
             <CardFooter className="border-t border-[#dee4e1] dark:border-slate-800 px-5 py-3.5">
               <Button
+                aschild="true"
                 variant="ghost"
                 size="sm"
                 className="w-full text-[#00685f] dark:text-[#6bd8cb] hover:text-[#005049] dark:hover:text-[#6bd8cb]/80"
               >
-                See full activity history
-                <ChevronRight className="h-4 w-4 ml-0.5" />
+                <Link
+                  className="flex flex-row gap-2"
+                  href="/dashboard/my-appointments"
+                >
+                  See full activity history
+                  <ChevronRight className="h-4 w-4 ml-0.5" />
+                </Link>
               </Button>
             </CardFooter>
           </Card>
