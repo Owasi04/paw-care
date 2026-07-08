@@ -4,8 +4,6 @@ import { dbConnect } from "@/app/lib/dbConnect";
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
-const appointmentsCollection = dbConnect("appointments");
-
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
@@ -18,6 +16,7 @@ export async function GET(request, { params }) {
       query = { _id: id };
     }
 
+    const appointmentsCollection = await dbConnect("appointments");
     const result = await appointmentsCollection.findOne(query);
     return NextResponse.json(result);
   } catch (error) {
@@ -33,7 +32,7 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
     }
 
-    const appointmentsCollection = dbConnect("appointments");
+    const appointmentsCollection = await dbConnect("appointments");
 
      const result = await appointmentsCollection.updateOne(
       { _id: new ObjectId(id) }, 
@@ -50,6 +49,6 @@ export async function PATCH(request, { params }) {
     return NextResponse.json(result);
   } catch (error) {
     console.error(error.message);
-    return NextResponse.json({ error: "Server error" }, { status: 500 }); // ✅ always return a response
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

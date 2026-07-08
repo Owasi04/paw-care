@@ -1,20 +1,16 @@
 import { dbConnect } from "@/app/lib/dbConnect";
 import { NextResponse } from "next/server";
 
-const petsCollection = dbConnect("pets");
-
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const ownerName = searchParams.get("ownerName");
     const query = ownerName ? { ownerName } : {};
+    const petsCollection = await dbConnect("pets");
     const result = await petsCollection.find(query).toArray();
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json(
-      { message: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
 
@@ -36,6 +32,7 @@ export async function POST(request) {
       notes: body.notes,
       petsPhotoURL: body.petsPhotoURL || null,
     };
+    const petsCollection = await dbConnect("pets");
     const result = await petsCollection.insertOne(addNewPets);
     return NextResponse.json({ status: 200 }, result);
   } catch (error) {

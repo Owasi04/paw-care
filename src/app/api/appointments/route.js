@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 export async function POST(request) {
   try {
     const body = await request.json();
-    const collection = dbConnect("appointments");
+    const collection = await dbConnect("appointments");
 
     const userMail = body.userMail;
     if (!userMail) {
@@ -48,15 +48,32 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
-    const status = request.nextUrl.searchParams.get("status");
+    const { searchParams } = request.nextUrl;
+    const userMail = searchParams.get("userMail");
+    const statusValues = searchParams.getAll("status");
 
-    const appointmentsCollection = dbConnect("appointments");
+    const query = {};
 
-    const query = status ? { status } : {};
+    if (userMail) {
+      query.userMail = userMail;
+    }
 
-    const result = await appointmentsCollection.find(query).toArray();
+    if (statusValues.length > 0) {
+      query.status = { $in: statusValues };
+    }
+
+    const appointmentsCollection = await dbConnect("appointments");
+    const result = await appointmentsCollection
+      .find(query)
+      .sort({ appointmentDate: -1 })
+      .toArray();
+
     return NextResponse.json(result);
   } catch (error) {
     console.log(error.message);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

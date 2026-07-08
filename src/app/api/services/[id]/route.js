@@ -4,14 +4,11 @@ import { ObjectId } from "mongodb";
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
-    const collection = dbConnect("services");
+    const collection = await dbConnect("services");
     let query = {};
     if (ObjectId.isValid(id)) {
       query = {
-        $or: [
-          { _id: new ObjectId(id) },
-          { _id: id }                 
-        ]
+        $or: [{ _id: new ObjectId(id) }, { _id: id }],
       };
     } else {
       query = { _id: id };

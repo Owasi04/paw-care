@@ -1,13 +1,13 @@
 "use server";
 import { dbConnect } from "@/app/lib/dbConnect";
 import bcrypt from "bcryptjs";
-const usersCollection = dbConnect("users");
 
 // post users data
 export async function POST(request) {
   try {
     const body = await request.json();
     // check if existed or not
+    const usersCollection = await dbConnect("users");
     const user = await usersCollection.findOne({ email: body.email });
     if (user) {
       return Response.json(
@@ -50,6 +50,7 @@ export async function POST(request) {
 // Get User Data
 export async function GET(request) {
   try {
+    const usersCollection = await dbConnect("users");
     const result = await usersCollection.find().toArray();
     return Response.json(result);
   } catch (error) {
