@@ -478,7 +478,10 @@ export default function DashboardPage() {
         </div>
       )}
       {user?.role === "vet" && (
-        <div className="">Hello form vet dashboard page</div>
+        <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">Hello form vet dashboard page</div>
+      )}
+      {user?.role === "admin" && (
+        <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">Hello form Admin dashboard page</div>
       )}
     </div>
   );

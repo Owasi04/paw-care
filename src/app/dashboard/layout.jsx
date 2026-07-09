@@ -5,12 +5,9 @@ import {
   LayoutDashboard,
   PawPrint,
   Calendar,
-  MessageSquare,
   FileText,
-  Settings,
   Plus,
   Menu,
-  X,
   Moon,
   Sun,
   House,
@@ -31,45 +28,165 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
-// ─── Sidebar navigation items ──────────────────────────────
+// ─── Sidebar configuration per role ───────────────────────
 
-// user navigation items
-const navItems = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { name: "My Pets", icon: PawPrint, href: "/dashboard/my-pets" },
-  { name: "Appointments", icon: Calendar, href: "/dashboard/my-appointments" },
-  { name: "Health Records", icon: FileText, href: "/dashboard/health-records" },
-];
+const roleConfig = {
+  user: {
+    label: "Member",
+    navItems: [
+      { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+      { name: "My Pets", icon: PawPrint, href: "/dashboard/my-pets" },
+      {
+        name: "Appointments",
+        icon: Calendar,
+        href: "/dashboard/my-appointments",
+      },
+      {
+        name: "Health Records",
+        icon: FileText,
+        href: "/dashboard/health-records",
+      },
+    ],
+    showBookButton: true,
+  },
+  vet: {
+    label: "Veterinarian",
+    navItems: [
+      { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+      { name: "My Schedule", icon: Calendar, href: "/dashboard/my-pets" },
+      {
+        name: "Patient Records",
+        icon: PawPrint,
+        href: "/dashboard/my-appointments",
+      },
+      {
+        name: "Lab Results",
+        icon: FlaskConical,
+        href: "/dashboard/health-records",
+      },
+    ],
+    showBookButton: false,
+  },
+  admin: {
+    label: "Administrator",
+    navItems: [
+      { name: "Analytics", icon: LayoutDashboard, href: "/dashboard" },
+      {
+        name: "Staff Management",
+        icon: Users,
+        href: "/dashboard/stuff-management",
+      },
+      { name: "Revenue", icon: Banknote, href: "/dashboard/revenue" },
+    ],
+    showBookButton: false,
+  },
+};
 
-// vet navigation items
-const vetNavItems = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { name: "My Schedule", icon: Calendar, href: "/dashboard/my-pets" },
-  {
-    name: "Patient Records",
-    icon: PawPrint,
-    href: "/dashboard/my-appointments",
-  },
-  {
-    name: "Lab Results",
-    icon: FlaskConical,
-    href: "/dashboard/health-records",
-  },
-];
-// vet navigation items
-const adminNavItems = [
-  { name: "Analytics", icon: LayoutDashboard, href: "/dashboard" },
-  {
-    name: "Staff Management",
-    icon: Users,
-    href: "/dashboard/stuff-management",
-  },
-  {
-    name: "Revenue",
-    icon: Banknote,
-    href: "/dashboard/revenue",
-  },
-];
+// ─── Reusable Sidebar component ─────────────────────────────
+
+function Sidebar({
+  role,
+  label,
+  navItems,
+  showBookButton,
+  user,
+  sidebarOpen,
+  isActive,
+}) {
+  return (
+    <aside
+      className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 transform bg-white dark:bg-slate-900 border-r border-[#dee4e1] dark:border-slate-800/60 p-4 transition-transform duration-200 ease-in-out",
+        "lg:translate-x-0",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full",
+      )}
+    >
+      {/* Logo */}
+      <div className="flex flex-col mb-8 px-2">
+        <Link href="/" className="shrink-0">
+          <Image
+            alt="Logo"
+            src="/Logo.jpg"
+            width={100}
+            height={100}
+            className="object-contain"
+            priority
+          />
+        </Link>
+      </div>
+
+      {/* Navigation */}
+      <nav className="space-y-0.5">
+        {navItems.map((item) => (
+          <Link
+            key={item.name}
+            href={item.href}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+              isActive(item.href)
+                ? "bg-[#00685f]/5 text-[#00685f] dark:bg-[#00685f]/20 dark:text-[#6bd8cb] border-r-2 border-[#00685f]"
+                : "text-[#3d4947] hover:bg-[#dee4e1]/50 hover:text-[#171d1c] dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50",
+            )}
+          >
+            <item.icon className="h-5 w-5" />
+            {item.name}
+          </Link>
+        ))}
+      </nav>
+
+      {/* Book Appointment button (user role only) */}
+      {showBookButton && (
+        <div className="mt-6 px-2">
+          <Link href="/services">
+            <button className="w-full bg-[#00685f] text-white py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#005049] transition-colors shadow-sm">
+              <Plus className="h-4 w-4" />
+              Book Appointment
+            </button>
+          </Link>
+        </div>
+      )}
+
+      {/* Bottom section */}
+      <div className="absolute bottom-4 left-4 right-4 space-y-1 border-t border-[#dee4e1] dark:border-slate-800/60 pt-4">
+        <Link
+          href="/"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#3d4947] dark:text-slate-300 transition-colors hover:bg-[#dee4e1]/50 dark:hover:bg-slate-800"
+        >
+          <House className="h-4 w-4" />
+          Home
+        </Link>
+        <Link
+          href="/support"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#3d4947] dark:text-slate-300 transition-colors hover:bg-[#dee4e1]/50 dark:hover:bg-slate-800"
+        >
+          <HelpCircle className="h-4 w-4" />
+          Support
+        </Link>
+        <div className="flex items-center gap-3 pt-2 px-1">
+          <Avatar className="h-10 w-10 ring-2 ring-[#fea619]/20">
+            <AvatarImage
+              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=center&auto=format"
+              alt="User"
+            />
+            <AvatarFallback className="bg-[#fea619]/20 text-[#855300] dark:bg-[#fea619]/10 dark:text-[#ffb95f] text-sm font-medium">
+              {user?.name?.charAt(0).toUpperCase() || "U"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate text-[#171d1c] dark:text-slate-100">
+              {user?.name}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-[#6d7a77] dark:text-slate-500 truncate">
+                {label}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -92,261 +209,22 @@ export default function DashboardLayout({ children }) {
     return pathname.startsWith(href);
   };
 
+  const userRole = user?.role || "user";
+  const config = roleConfig[userRole] || roleConfig.user;
+
   return (
     <div className="flex min-h-screen bg-[#f5faf8] dark:bg-slate-950/50">
       {/* ─── Sidebar ─── */}
-      {user?.role === "user" && (
-        <aside
-          className={cn(
-            "fixed inset-y-0 left-0 z-50 w-64 transform bg-white dark:bg-slate-900 border-r border-[#dee4e1] dark:border-slate-800/60 p-4 transition-transform duration-200 ease-in-out",
-            "lg:translate-x-0",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full",
-          )}
-        >
-          {/* Logo */}
-          <div className="flex flex-col mb-8 px-2">
-            <Link href="/" className="flex-shrink-0">
-              <Image
-                alt="Logo"
-                src="/Logo.jpg"
-                width={100}
-                height={100}
-                className="object-contain"
-                priority
-              />
-            </Link>
-          </div>
-
-          {/* Navigation */}
-          <nav className="space-y-0.5">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                  isActive(item.href)
-                    ? "bg-[#00685f]/5 text-[#00685f] dark:bg-[#00685f]/20 dark:text-[#6bd8cb] border-r-2 border-[#00685f]"
-                    : "text-[#3d4947] hover:bg-[#dee4e1]/50 hover:text-[#171d1c] dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50",
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Book Appointment button */}
-          <div className="mt-6 px-2">
-            <Link href={`/services`}>
-              <button className="w-full bg-[#00685f] text-white py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#005049] transition-colors shadow-sm">
-                <Plus className="h-4 w-4" />
-                Book Appointment
-              </button>
-            </Link>
-          </div>
-
-          {/* Bottom section */}
-          <div className="absolute bottom-4 left-4 right-4 space-y-1 border-t border-[#dee4e1] dark:border-slate-800/60 pt-4">
-            <Link
-              href="/"
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#3d4947] dark:text-slate-300 transition-colors hover:bg-[#dee4e1]/50 dark:hover:bg-slate-800"
-            >
-              <House className="h-4 w-4" />
-              Home
-            </Link>
-            <Link
-              href="/support"
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#3d4947] dark:text-slate-300 transition-colors hover:bg-[#dee4e1]/50 dark:hover:bg-slate-800"
-            >
-              <HelpCircle className="h-4 w-4" />
-              Support
-            </Link>
-            <div className="flex items-center gap-3 pt-2 px-1">
-              <Avatar className="h-10 w-10 ring-2 ring-[#fea619]/20">
-                <AvatarImage
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=center&auto=format"
-                  alt="User"
-                />
-                <AvatarFallback className="bg-[#fea619]/20 text-[#855300] dark:bg-[#fea619]/10 dark:text-[#ffb95f] text-sm font-medium">
-                  U
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-[#171d1c] dark:text-slate-100">
-                  {user?.name}
-                </p>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-[#6d7a77] dark:text-slate-500 truncate">
-                    Member
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </aside>
-      )}
-      {user?.role === "vet" && (
-        <aside
-          className={cn(
-            "fixed inset-y-0 left-0 z-50 w-64 transform bg-white dark:bg-slate-900 border-r border-[#dee4e1] dark:border-slate-800/60 p-4 transition-transform duration-200 ease-in-out",
-            "lg:translate-x-0",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full",
-          )}
-        >
-          {/* Logo */}
-          <div className="flex flex-col mb-8 px-2">
-            <Link href="/" className="flex-shrink-0">
-              <Image
-                alt="Logo"
-                src="/Logo.jpg"
-                width={100}
-                height={100}
-                className="object-contain"
-                priority
-              />
-            </Link>
-          </div>
-
-          {/* Navigation */}
-          <nav className="space-y-0.5">
-            {vetNavItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                  isActive(item.href)
-                    ? "bg-[#00685f]/5 text-[#00685f] dark:bg-[#00685f]/20 dark:text-[#6bd8cb] border-r-2 border-[#00685f]"
-                    : "text-[#3d4947] hover:bg-[#dee4e1]/50 hover:text-[#171d1c] dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50",
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Bottom section */}
-          <div className="absolute bottom-4 left-4 right-4 space-y-1 border-t border-[#dee4e1] dark:border-slate-800/60 pt-4">
-            <Link
-              href="/"
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#3d4947] dark:text-slate-300 transition-colors hover:bg-[#dee4e1]/50 dark:hover:bg-slate-800"
-            >
-              <House className="h-4 w-4" />
-              Home
-            </Link>
-            <Link
-              href="/support"
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#3d4947] dark:text-slate-300 transition-colors hover:bg-[#dee4e1]/50 dark:hover:bg-slate-800"
-            >
-              <HelpCircle className="h-4 w-4" />
-              Support
-            </Link>
-            <div className="flex items-center gap-3 pt-2 px-1">
-              <Avatar className="h-10 w-10 ring-2 ring-[#fea619]/20">
-                <AvatarImage
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=center&auto=format"
-                  alt="User"
-                />
-                <AvatarFallback className="bg-[#fea619]/20 text-[#855300] dark:bg-[#fea619]/10 dark:text-[#ffb95f] text-sm font-medium">
-                  U
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-[#171d1c] dark:text-slate-100">
-                  {user?.name}
-                </p>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-[#6d7a77] dark:text-slate-500 truncate">
-                    Vet
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </aside>
-      )}
-      {user?.role === "admin" && (
-        <aside
-          className={cn(
-            "fixed inset-y-0 left-0 z-50 w-64 transform bg-white dark:bg-slate-900 border-r border-[#dee4e1] dark:border-slate-800/60 p-4 transition-transform duration-200 ease-in-out",
-            "lg:translate-x-0",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full",
-          )}
-        >
-          {/* Logo */}
-          <div className="flex flex-col mb-8 px-2">
-            <Link href="/" className="flex-shrink-0">
-              <Image
-                alt="Logo"
-                src="/Logo.jpg"
-                width={100}
-                height={100}
-                className="object-contain"
-                priority
-              />
-            </Link>
-          </div>
-
-          {/* Navigation */}
-          <nav className="space-y-0.5">
-            {adminNavItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                  isActive(item.href)
-                    ? "bg-[#00685f]/5 text-[#00685f] dark:bg-[#00685f]/20 dark:text-[#6bd8cb] border-r-2 border-[#00685f]"
-                    : "text-[#3d4947] hover:bg-[#dee4e1]/50 hover:text-[#171d1c] dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50",
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Bottom section */}
-          <div className="absolute bottom-4 left-4 right-4 space-y-1 border-t border-[#dee4e1] dark:border-slate-800/60 pt-4">
-            <Link
-              href="/"
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#3d4947] dark:text-slate-300 transition-colors hover:bg-[#dee4e1]/50 dark:hover:bg-slate-800"
-            >
-              <House className="h-4 w-4" />
-              Home
-            </Link>
-            <Link
-              href="/support"
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#3d4947] dark:text-slate-300 transition-colors hover:bg-[#dee4e1]/50 dark:hover:bg-slate-800"
-            >
-              <HelpCircle className="h-4 w-4" />
-              Support
-            </Link>
-            <div className="flex items-center gap-3 pt-2 px-1">
-              <Avatar className="h-10 w-10 ring-2 ring-[#fea619]/20">
-                <AvatarImage
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=center&auto=format"
-                  alt="User"
-                />
-                <AvatarFallback className="bg-[#fea619]/20 text-[#855300] dark:bg-[#fea619]/10 dark:text-[#ffb95f] text-sm font-medium">
-                  U
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-[#171d1c] dark:text-slate-100">
-                  {user?.name}
-                </p>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-[#6d7a77] dark:text-slate-500 truncate">
-                    Admin
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </aside>
+      {user && (
+        <Sidebar
+          role={userRole}
+          label={config.label}
+          navItems={config.navItems}
+          showBookButton={config.showBookButton}
+          user={user}
+          sidebarOpen={sidebarOpen}
+          isActive={isActive}
+        />
       )}
 
       {/* ─── Mobile overlay ─── */}
