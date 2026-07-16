@@ -1,54 +1,109 @@
+"use client";
 import Image from "next/image";
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { Briefcase, Star } from "lucide-react";
 
-const vets = [
-  {
-    name: "Dr. Sarah Miller",
-    role: "Senior Veterinarian",
-    desc: "Specializing in internal medicine and senior pet care.",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAUU2F8WoQco9hGt6IW8MHeqmwm25yKQxxnyfqSkHTwsf04DVQDR25ZmTmpcL4edJF2Dwk9OMR5R7eS_GUdZadH2HVJxsJOhZJMQfz1r9TRTlOxK9ECqujcIDJ7l3_q2ZvQ7Px7Db2FUensK1VXFDMYxLeqgOtyE_aaZ3G-BDsl3FZ8HSy0T2pbWpTX3YMEjKNqffrG8Tc9IaDe_PSd-cDDekbTziR9S6QE2FlN1EBjJrnOYBHwUy32rTuBtdP6WR1mDgI_zRZCrpg",
-  },
-  {
-    name: "Dr. James Wilson",
-    role: "Veterinary Surgeon",
-    desc: "Expert in soft tissue surgery and orthopedic procedures.",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuC7YOHlOG00C1JkBgafYX58wiy_M95l_xW4RKVkF8gRg50KWYglauKH1XNMfgOGUzNcCPnUYX7kjSFXJWKfDNyN08KJYAfS4QzQE__mpEc6AJwuzdA_uGC4pSPkJX3P8PPsBZ7Bt0Qm26FcQgoH6CCLuKEPW6fzW3GIzUnK7p3ht_shiGoWY9y4xAOPWnElPVKCWwpQ3094ACLstt-gNfw3Bu22qGpiG-Owld2yPxZGj2SgsDBUH1WrNvG2z5Qge4ONm7OleEZP5HU",
-  },
-  {
-    name: "Dr. Elena Petrova",
-    role: "Dermatology Specialist",
-    desc: "Focused on allergy management and skin health treatments.",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDCHMw72MUrbbexF-COS-AhtrWZ4KdJ02nH-_nAg77_dUfl6wgAlgQLZTWm9HzTWEiocrhV6lpb8FGJsWqoI9Gfxmuqr3AZwl8H1-TxOkwF6H3FoJ3FxVOmeOFvnOs_kekUI9Xij8L1rgCAhnCKbIcr1nIE6pK9seoJBfMjCY8I52w9O1w3pS94hxNHYsNFuQVlmrhcaitr_1zUS8akjt77Nb6nbrtIHkwVa6goeP6tFuNRLTuKA6SqF9BNttylgDwacfr_AfOeodI",
-  },
-];
+const VetCard = ({ vet }) => {
+  if (!vet) return null;
 
-const VetCard = ({ name, role, desc, img }) => (
-  <Card className="bg-white dark:bg-surface-container-low/80 rounded-[24px] overflow-hidden group shadow-md dark:shadow-lg transition-colors border-0 p-0">
-    <div className="h-80 overflow-hidden">
-      <Image
-        width={400}
-        height={400}
-        alt={name}
-        src={img}
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-      />
-    </div>
-    <CardContent className="p-6">
-      <h4 className=" text-lg font-bold text-slate-700">
-        {name}
-      </h4>
-      <p className="text-slate-600 mb-2">
-        {role}
-      </p>
-      <p className="text-slate-500 text-sm">
-        {desc}
-      </p>
-    </CardContent>
-  </Card>
-);
+  const {
+    display_name,
+    credentials = [],
+    status,
+    rating = {},
+    experience_years,
+    specializations = [],
+    bio,
+    images,
+  } = vet;
+
+  const primaryImage =
+    images?.primary || images?.alternatives?.[0] || "/petsBG.jpg";
+
+  return (
+    <Card className="group max-w-lg overflow-hidden rounded-3xl border-0 bg-white dark:bg-slate-900 shadow-md hover:shadow-xl transition-all duration-300">
+      {/* Image */}
+      <div className="relative h-80 overflow-hidden">
+        <Image
+          src={primaryImage}
+          alt={display_name}
+          width={400}
+          height={400}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+
+        {/* Status */}
+        <Badge
+          className={`absolute top-4 right-4 capitalize ${
+            status === "active"
+              ? "bg-emerald-600 hover:bg-emerald-600"
+              : "bg-red-600 hover:bg-red-600"
+          }`}
+        >
+          {status}
+        </Badge>
+      </div>
+
+      <CardContent className="space-y-4 p-6">
+        {/* Name */}
+        <div>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-white">
+            {display_name}
+          </h3>
+
+          <p className="text-sm text-primary font-medium">
+            {credentials.join(", ")}
+          </p>
+        </div>
+
+        {/* Rating & Experience */}
+        <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-300">
+          <div className="flex items-center gap-1">
+            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <span className="font-medium">{rating.average ?? "N/A"}</span>
+            <span>({rating.count ?? 0})</span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Briefcase className="h-4 w-4" />
+            <span>{experience_years ?? 0} Years</span>
+          </div>
+        </div>
+
+        {/* Specializations */}
+        <div className="flex flex-wrap gap-2">
+          {specializations.map((specialization) => (
+            <Badge
+              key={specialization}
+              variant="secondary"
+              className="rounded-full"
+            >
+              {specialization}
+            </Badge>
+          ))}
+        </div>
+
+        {/* Bio */}
+        <p className="line-clamp-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
+          {bio}
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
 
 const VetTeam = () => {
+  const { data: vetsCollection = [] } = useQuery({
+    queryKey: ["vetsColection"],
+    queryFn: async () => {
+      const limit = 3
+      const res = await fetch(`/api/vet?limit=${limit}`);
+      return res.json();
+    },
+  });
   return (
     <section className=" py-24 transition-colors">
       <div className=" mx-auto px-margin-mobile md:px-margin-desktop">
@@ -70,8 +125,8 @@ const VetTeam = () => {
 
         {/* Team Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {vets.map((vet) => (
-            <VetCard key={vet.name} {...vet} />
+          {vetsCollection.map((vet) => (
+            <VetCard key={vet._id || vet.display_name} vet={vet} />
           ))}
         </div>
       </div>
