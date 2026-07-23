@@ -24,6 +24,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Team from "./Team";
 
 // ─── Reusable tiny components ────────────────────────────────────────────────
 
@@ -48,40 +49,6 @@ const StatCard = ({ icon: Icon, value, label }) => (
     </CardContent>
   </Card>
 );
-
-const TeamCard = ({ name, role, desc, image }) => {
-  const validSrc =
-    image && image.trim() !== ""
-      ? image
-      : "https://images.unsplash.com/photo-1541339907198-e08756ebafe3?q=80&w=500";
-
-  return (
-    <Card className="overflow-hidden border border-slate-100 dark:border-slate-800/50 bg-white dark:bg-slate-900 shadow-sm group hover:shadow-xl dark:hover:border-slate-700/60 transition-all duration-300 h-full flex flex-col">
-      <div className="relative w-full h-72 flex-shrink-0">
-        <Image
-          src={validSrc}
-          alt={name || "Veterinarian"}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-transform duration-500"
-          priority={false}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent" />
-        <div className="absolute bottom-4 left-4 text-white">
-          <p className="font-bold text-lg leading-none">{name}</p>
-          <p className="text-teal-400 dark:text-teal-300 text-sm font-medium mt-1">
-            {role}
-          </p>
-        </div>
-      </div>
-      <CardContent className="p-5 flex-grow">
-        <CardDescription className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
-          {desc}
-        </CardDescription>
-      </CardContent>
-    </Card>
-  );
-};
 
 const ValueCard = ({ icon: Icon, title, desc }) => (
   <Card className="border border-slate-100 dark:border-slate-800/50 bg-white dark:bg-slate-900 shadow-sm hover:ring-2 ring-teal-500/10 dark:ring-teal-400/10 transition-all">
@@ -108,7 +75,8 @@ const Hero = () => (
     <div className="max-w-3xl mx-auto space-y-6 relative z-10">
       <Badge>About PawCare</Badge>
       <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-slate-50 leading-[1.1] transition-colors">
-        We treat your pets like <span className="text-teal-600 dark:text-teal-400">family.</span>
+        We treat your pets like{" "}
+        <span className="text-teal-600 dark:text-teal-400">family.</span>
       </h1>
       <p className="text-slate-600 dark:text-slate-300 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto transition-colors">
         Founded in 2012, PawCare has grown from a neighbourhood clinic into a
@@ -129,57 +97,6 @@ const Hero = () => (
     </div>
   </section>
 );
-
-const Team = () => {
-  const vets = [
-    {
-      name: "Dr. Sarah Miller",
-      role: "Senior Veterinarian",
-      desc: "Specialising in internal medicine and senior pet care with 12 years of practice.",
-      image:
-        "https://images.unsplash.com/photo-1644675272883-0c4d582528d8?auto=format&fit=crop&q=80&w=800",
-    },
-    {
-      name: "Dr. James Wilson",
-      role: "Veterinary Surgeon",
-      desc: "Expert in soft-tissue surgery and orthopaedic procedures for dogs and cats.",
-      image:
-        "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=800",
-    },
-    {
-      name: "Dr. Elena Petrova",
-      role: "Dermatology Specialist",
-      desc: "Focused on allergy management, skin health, and immunology treatments.",
-      image:
-        "https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=800",
-    },
-  ];
-
-  return (
-    <section>
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-        <div className="space-y-3 max-w-xl">
-          <Badge>Expert Team</Badge>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-100 transition-colors">
-            Meet our specialized vet team
-          </h2>
-          <p className="text-slate-500 dark:text-slate-400 text-lg transition-colors">
-            A diverse group of professionals united by a genuine love for
-            animals.
-          </p>
-        </div>
-        <button className="font-bold px-6 py-3 rounded-xl border-2 border-teal-600 text-teal-600 hover:bg-teal-50/50 dark:border-teal-500 dark:text-teal-400 dark:hover:bg-teal-950/20 transition-all cursor-pointer whitespace-nowrap self-start">
-          View all 18 specialists →
-        </button>
-      </div>
-      <div className="grid md:grid-cols-3 gap-8">
-        {vets.map((v) => (
-          <TeamCard key={v.name} {...v} />
-        ))}
-      </div>
-    </section>
-  );
-};
 
 const Values = () => (
   <section className="bg-slate-100/50 dark:bg-slate-900/30 rounded-[2.5rem] p-8 md:p-12 transition-colors">
@@ -224,7 +141,10 @@ const Contact = () => (
         { icon: Phone, label: "Call Us", value: "+1 (800) PAW-CARE" },
         { icon: Mail, label: "Email Us", value: "hello@pawcare.vet" },
       ].map(({ icon: Icon, label, value }) => (
-        <Card key={label} className="border border-slate-100 dark:border-slate-800/40 bg-white dark:bg-slate-900 shadow-sm text-center py-4 transition-all">
+        <Card
+          key={label}
+          className="border border-slate-100 dark:border-slate-800/40 bg-white dark:bg-slate-900 shadow-sm text-center py-4 transition-all"
+        >
           <CardContent className="flex flex-col items-center gap-3">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400">
               <Icon size={22} />
@@ -281,7 +201,10 @@ export default function AboutPage() {
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-teal-100 dark:bg-teal-950/60 flex items-center justify-center flex-shrink-0">
-                    <PawPrint size={12} className="text-teal-600 dark:text-teal-400" />
+                    <PawPrint
+                      size={12}
+                      className="text-teal-600 dark:text-teal-400"
+                    />
                   </div>
                   <span className="text-slate-700 dark:text-slate-200 font-medium transition-colors">
                     {item}
@@ -333,12 +256,12 @@ export default function AboutPage() {
                   fill
                   src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100"
                   className="object-cover"
-                  alt="Riya Ahmed"
+                  alt="Rakib Ahmed"
                 />
               </div>
               <div className="text-left">
                 <p className="font-bold text-lg text-white dark:text-slate-100">
-                  Riya Ahmed
+                  Rakib Ahmed
                 </p>
                 <p className="text-teal-100/80 dark:text-teal-400">
                   Golden Retriever owner

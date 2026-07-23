@@ -24,14 +24,14 @@ const VetCard = ({ vet }) => {
     images?.primary || images?.alternatives?.[0] || "/petsBG.jpg";
 
   return (
-    <Card className="group max-w-lg overflow-hidden rounded-3xl border-0 bg-white dark:bg-slate-900 shadow-md hover:shadow-xl transition-all duration-300">
+    <Card className="group max-w-md overflow-hidden rounded-3xl border-0 bg-white dark:bg-slate-900 shadow-md hover:shadow-xl transition-all duration-300">
       {/* Image */}
       <div className="relative h-80 overflow-hidden">
         <Image
           src={primaryImage}
           alt={display_name}
-          width={400}
-          height={400}
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
@@ -99,7 +99,7 @@ const VetTeam = () => {
   const { data: vetsCollection = [] } = useQuery({
     queryKey: ["vetsColection"],
     queryFn: async () => {
-      const limit = 3
+      const limit = 3;
       const res = await fetch(`/api/vet?limit=${limit}`);
       return res.json();
     },
