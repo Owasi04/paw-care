@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, Star } from "lucide-react";
+import Link from "next/link";
 
 const VetCard = ({ vet }) => {
   if (!vet) return null;
@@ -119,7 +120,7 @@ const VetTeam = () => {
             </p>
           </div>
           <button className="border-2 border-primary text-primary px-8 py-3 rounded-lg font-bold hover:bg-primary-container/20 dark:hover:bg-primary-container/30 transition-colors cursor-pointer">
-            View All Team
+            <Link href={`/vets`}> View All Team</Link>
           </button>
         </div>
 

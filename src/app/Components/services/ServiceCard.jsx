@@ -14,7 +14,7 @@ import {
   FALLBACK_SERVICE_IMAGE,
 } from "@/app/lib/serviceUtils";
 
-// ─── Icon helpers (declared outside render to avoid React lint errors) ──
+// ─── Icon helpers ─────────────────────────────────────────────────────────
 
 function CategoryIconDisplay({ category, className }) {
   const Icon = CATEGORY_ICONS[category] ?? PawPrint;
@@ -119,17 +119,39 @@ export default function ServiceCard({
     );
   }
 
-  // ── Default: main services grid ──
+  // ── Default: properly structured with shadcn card tags ──
   return (
     <Card
       className={cn(
-        "group w-full max-w-sm overflow-hidden transition-all hover:shadow-xl border border-slate-200/80 dark:border-slate-700/60 rounded-2xl flex flex-col h-full",
+        "relative gap-0 py-0 rounded-2xl group hover:shadow-2xl duration-300 flex flex-col h-full",
         className,
       )}
     >
-      <div className="relative flex-shrink-0">
-        <ServiceImage src={service.image} alt={service.name} />
+      {/* ── Image section ── */}
+      <div className="relative overflow-hidden rounded-t-2xl">
+        <Link href={`/services/${serviceId}`}>
+          <div className="w-full h-72">
+            <Image
+              src={service.image ?? FALLBACK_SERVICE_IMAGE}
+              alt={service.name}
+              width={440}
+              height={300}
+              className="w-full h-full object-cover rounded-t-2xl group-hover:brightness-50 group-hover:scale-125 transition duration-300 delay-75"
+              onError={(e) => {
+                e.currentTarget.src = FALLBACK_SERVICE_IMAGE;
+              }}
+            />
+          </div>
+        </Link>
 
+        {/* Hover arrow – now relative to image container */}
+        <div className="absolute top-3 right-3 hidden p-3 bg-white rounded-full group-hover:block z-10">
+          <Link href={`/services/${serviceId}`}>
+            <ArrowRight className="h-4 w-4 text-card-foreground" />
+          </Link>
+        </div>
+
+        {/* Category badge */}
         <Badge className="absolute left-3 top-3 gap-1 bg-background/90 text-foreground backdrop-blur hover:bg-background/90 z-10">
           <CategoryIconDisplay
             category={service.category}
@@ -138,6 +160,7 @@ export default function ServiceCard({
           {service.category}
         </Badge>
 
+        {/* Favourite button – now at the bottom-right of the image */}
         <button
           type="button"
           onClick={(e) => {
@@ -147,7 +170,7 @@ export default function ServiceCard({
           }}
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
           aria-pressed={isFavorite}
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/90 backdrop-blur outline-none transition-transform active:scale-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 z-10"
+          className="absolute right-3 bottom-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/90 backdrop-blur outline-none transition-transform active:scale-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 z-10"
         >
           <Heart
             className={cn(
@@ -158,53 +181,50 @@ export default function ServiceCard({
         </button>
       </div>
 
-      <CardContent className="flex flex-1 flex-col gap-2 pb-3 pt-4">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg leading-tight font-semibold text-slate-800 dark:text-slate-100">
-            {service.name}
-          </h3>
-          <div className="shrink-0 text-right">
-            <p className="text-xl font-bold leading-none text-teal-600 dark:text-teal-400">
-              ${service.price}
+      {/* ── CardContent (main details) ── */}
+      <CardContent className="p-6 flex flex-col flex-1">
+        <div className="flex justify-between gap-5 mb-6">
+          <div>
+            <Link href={`/services/${serviceId}`}>
+              <h3 className="text-xl font-medium duration-300 group-hover:text-primary">
+                {service.name}
+              </h3>
+            </Link>
+          </div>
+          <Badge className="px-5 py-4 text-base font-normal rounded-full bg-teal-500/10 text-teal-500 shrink-0 self-start">
+            ${service.price}
+          </Badge>
+        </div>
+
+        <div className="flex">
+          <div className="flex flex-col gap-2 max-sm:pr-4 pr-8 border-e border-border">
+            <CategoryIconDisplay
+              category={service.category}
+              className="w-5 h-5"
+            />
+            <p className="text-sm sm:text-base">{service.category}</p>
+          </div>
+
+          <div className="flex flex-col gap-2 max-sm:px-4 px-8 border-e border-border">
+            <Clock className="w-5 h-5" />
+            <p className="text-sm sm:text-base">{service.duration}</p>
+          </div>
+
+          <div className="flex flex-col gap-2 max-sm:pl-4 pl-8">
+            <PetTypeIconDisplay
+              type={service.petTypes?.[0]}
+              className="w-5 h-5"
+            />
+            <p className="text-sm sm:text-base">
+              {service.petTypes?.join(", ") ?? "N/A"}
             </p>
-            <p className="text-xs text-muted-foreground">per session</p>
           </div>
         </div>
-
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Clock className="h-3.5 w-3.5" />
-            {service.duration}
-          </span>
-          {service.petTypes?.map((type) => (
-            <span key={type} className="flex items-center gap-1">
-              <PetTypeIconDisplay type={type} className="h-3.5 w-3.5" />
-              {type}
-            </span>
-          ))}
-        </div>
-
-        <p className="line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
-          {service.description}
-        </p>
       </CardContent>
-
-      <CardFooter className="mt-auto flex items-center gap-2 border-t pt-4">
+      <CardFooter className="px-6 pb-6 pt-0 my-2 mt-auto">
         <Button
-          aschild="true"
-          variant="outline"
-          size="sm"
-          className=" border-teal-600 text-teal-600 hover:bg-teal-50 dark:border-teal-500 dark:text-teal-400 dark:hover:bg-teal-950/40"
-        >
-          <Link href={`/services/${serviceId}`} className="flex gap-1 items-center">
-            View Details
-            <ArrowRight className="ml-1 h-3.5 w-3.5" />
-          </Link>
-        </Button>
-        <Button
-          size="sm"
           onClick={handleBook}
-          className="flex-1 bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+          className="w-full bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
         >
           Book Now
         </Button>

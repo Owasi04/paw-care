@@ -25,6 +25,8 @@ const MyAppointments = () => {
     enabled: !!userEmail,
   });
 
+
+  // user cancell the appointmets
   const cancelAppointment = async (id) => {
     const res = await fetch(`/api/appointments/${id}`, {
       method: "PATCH",

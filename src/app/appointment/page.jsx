@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Mail,
@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const fieldBase =
   "block w-full rounded-lg border bg-white dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 " +
@@ -54,28 +54,38 @@ function FormFallback() {
 
 // ─── Inner Form Component ──────────────────────────────────────────────
 const AppointmentForm = () => {
-  const [serviceFromUrl] = useState(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("service") || "";
-    }
-    return "";
-  });
+  // useSearchParams needs the <Suspense> boundary below, which was already
+  // in place — this replaces the old manual window.location.search parsing.
+  const searchParams = useSearchParams();
+  const serviceFromUrl = searchParams.get("service") || "";
+  const vetIdFromUrl = searchParams.get("vetId") || "";
+  const vetNameFromUrl = searchParams.get("vetName") || "";
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset,
+    setValue,
   } = useForm({
     defaultValues: {
       serviceName: serviceFromUrl,
+      vetID: vetIdFromUrl,
+      vetName: vetNameFromUrl,
     },
   });
 
   const router = useRouter();
 
+  useEffect(() => {
+    setValue("serviceName", serviceFromUrl || "");
+    setValue("vetID", vetIdFromUrl || "");
+    setValue("vetName", vetNameFromUrl || "");
+  }, [serviceFromUrl, vetIdFromUrl, vetNameFromUrl, setValue]);
+
   const onSubmit = async (data) => {
+    const vetIDValue = data.vetID || vetIdFromUrl || "";
+    const vetNameValue = data.vetName || vetNameFromUrl || "";
+
     const formData = {
       userMail: user?.email,
       userName: user?.name,
@@ -83,6 +93,8 @@ const AppointmentForm = () => {
       petName: data.petName,
       petType: data.petType,
       petBreed: data.petBreed,
+      vetID: vetIDValue,
+      vetName: vetNameValue,
       appointmentTime: data.appointmentTime,
       appointmentDate: data.appointmentDate,
       serviceName: data.serviceName,
@@ -286,6 +298,23 @@ const AppointmentForm = () => {
             <p className={errorClass}>{errors.serviceName.message}</p>
           )}
         </div>
+
+        {/* Vet carried over from the service details page, when one is assigned */}
+        <input type="hidden" {...register("vetID")} />
+        {vetNameFromUrl && (
+          <div>
+            <label htmlFor="vetName" className={labelClass}>
+              Assigned Vet
+            </label>
+            <input
+              id="vetName"
+              type="text"
+              readOnly
+              {...register("vetName")}
+              className={`${fieldBase} border-gray-300 dark:border-gray-700 px-3 py-2 mt-1.5`}
+            />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>

@@ -4,7 +4,6 @@ import Navbar from "./Components/Navbar";
 import { Providers } from "./Providers";
 import Footer from "./Components/Footer/Footer";
 import MainContent from "./Components/MainContent";
-import { Toaster } from "react-hot-toast";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 
@@ -39,7 +38,6 @@ export default async function RootLayout({ children }) {
             <Footer />
           </footer>
         </Providers>
-        <Toaster />
       </body>
     </html>
   );

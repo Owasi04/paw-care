@@ -43,12 +43,61 @@ export default function ServiceDetails({ id }) {
     enabled: !!id,
   });
 
+  const { data: vets = [] } = useQuery({
+    queryKey: ["vet"],
+    queryFn: async () => {
+      const res = await fetch(`/api/vet`);
+      return res.json();
+    },
+  });
+
+  const serviceDetailsVetInfo = () => {
+    if (!service?.vet) return null;
+
+    const serviceVet = service.vet;
+    const serviceVetName = serviceVet?.name || serviceVet?.display_name || "";
+    const matchedVet =
+      Array.isArray(vets) && serviceVetName
+        ? vets.find(
+            (vet) =>
+              vet.display_name === serviceVetName ||
+              vet.name === serviceVetName,
+          )
+        : null;
+
+    const selectedVet = matchedVet || serviceVet;
+
+    if (!selectedVet) return null;
+
+    return {
+      id: selectedVet._id || selectedVet.id || "",
+      name: selectedVet.display_name || selectedVet.name || serviceVetName,
+      photo:
+        selectedVet.images?.primary ||
+        selectedVet.images?.alternatives?.[0] ||
+        serviceVet.photo ||
+        serviceVet.image ||
+        "",
+      credentials:
+        (Array.isArray(selectedVet.credentials)
+          ? selectedVet.credentials.join(", ")
+          : selectedVet.credentials) ||
+        serviceVet.credentials ||
+        "",
+    };
+  };
+
+  const vetInfo = serviceDetailsVetInfo();
+
   const handleBook = () => {
     if (!session?.user) {
       window.location.href = "/auth/login";
-    } else {
-      window.location.href = `/appointment?service=${encodeURIComponent(service.name)}`;
+      return;
     }
+    const params = new URLSearchParams({ service: service.name });
+    if (vetInfo?._id) params.set("vetId", vetInfo?._id);
+    if (vetInfo?.name) params.set("vetName", vetInfo?.name);
+    window.location.href = `/appointment?${params.toString()}`;
   };
 
   if (isLoading) {
@@ -192,8 +241,7 @@ export default function ServiceDetails({ id }) {
               variant="outline"
               className="rounded-full border-teal-600 text-teal-600 hover:bg-teal-50 dark:border-teal-500 dark:text-teal-400 dark:hover:bg-teal-950/40"
             >
-              <Link href="/services"
-              className="flex gap-2 ">
+              <Link href="/services" className="flex gap-2 ">
                 <ArrowLeft className="h-4 w-4" /> Back to Services
               </Link>
             </Button>
@@ -257,16 +305,16 @@ export default function ServiceDetails({ id }) {
               </CardContent>
             </Card>
 
-            {service.vet && (
+            {(service.vet || vetInfo) && (
               <Card className="rounded-2xl border-slate-200/80 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-800/40">
                 <CardContent className="flex items-center gap-3 p-5">
                   <Avatar className="h-12 w-12">
                     <AvatarImage
-                      src={service.vet.photo}
-                      alt={service.vet.name}
+                      src={vetInfo?.photo || service.vet?.photo}
+                      alt={vetInfo?.name || service.vet?.name}
                     />
                     <AvatarFallback className="bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-400">
-                      {getInitials(service.vet.name)}
+                      {getInitials(vetInfo?.name || service.vet?.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
@@ -274,10 +322,10 @@ export default function ServiceDetails({ id }) {
                       Your Groomer
                     </p>
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      {service.vet.name}
+                      {vetInfo?.name || service.vet?.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {service.vet.credentials}
+                      {vetInfo?.credentials || service.vet?.credentials}
                     </p>
                   </div>
                 </CardContent>

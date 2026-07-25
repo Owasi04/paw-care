@@ -15,6 +15,9 @@ export async function POST(request) {
       );
     }
 
+    const vetID = body.vetID ?? body.vetId ?? "";
+    const vetName = body.vetName ?? "";
+
     const newAppointment = {
       userMail,
       userName: body.userName,
@@ -24,6 +27,11 @@ export async function POST(request) {
       petName: body.petName,
       petType: body.petType,
       petBreed: body.petBreed,
+
+      // vet id + name
+      vetID,
+      vetId: vetID,
+      vetName,
 
       // service + scheduling
       serviceName: body.serviceName,

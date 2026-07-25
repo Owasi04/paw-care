@@ -4,6 +4,13 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 
+// Next.js 16: route handlers must explicitly opt into the Node.js runtime
+// and dynamic rendering, otherwise the catch-all auth route can be
+// statically optimized / not registered, returning an HTML 404 page
+// instead of JSON (which triggers CLIENT_FETCH_ERROR in next-auth).
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export const authOptions = {
   // Configure one or more authentication providers
   session: {

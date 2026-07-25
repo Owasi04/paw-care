@@ -8,7 +8,6 @@ import {
   PlusCircle,
 } from "lucide-react";
 import { Trash2Icon, TrashIcon } from "@animateicons/react/lucide";
-import { useQuery } from "@tanstack/react-query";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -17,16 +16,19 @@ const TABS = ["All", "Pending", "Completed", "Cancelled"];
 const STATUS_CONFIG = {
   Pending: {
     label: "Pending",
-    badgeClass: "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-900",
+    badgeClass:
+      "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-900",
     dot: true,
   },
   Completed: {
     label: "Completed",
-    badgeClass: "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-900",
+    badgeClass:
+      "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-900",
   },
   Cancelled: {
     label: "Cancelled",
-    badgeClass: "bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-900",
+    badgeClass:
+      "bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-900",
   },
 };
 
@@ -163,7 +165,10 @@ function AppointmentRow({ appointment, onCancel }) {
 
 function SkeletonRows() {
   return Array.from({ length: 3 }).map((_, i) => (
-    <tr key={i} className="border-b border-surface-variant dark:border-zinc-800">
+    <tr
+      key={i}
+      className="border-b border-surface-variant dark:border-zinc-800"
+    >
       {Array.from({ length: 6 }).map((_, j) => (
         <td key={j} className="px-6 py-4">
           <div className="h-4 bg-surface-container-low dark:bg-zinc-800 rounded-full animate-pulse w-3/4" />
@@ -176,31 +181,22 @@ function SkeletonRows() {
 // ─── Main Exported Component ────────────────────────────────────────────────
 
 export default function AppointmentsTable({
+  appointments = [],
   isLoading = false,
   isError = false,
   onCancel = () => {},
 }) {
   const [activeTab, setActiveTab] = useState("All");
 
-  const { data: appointments = [] } = useQuery({
-    queryKey: ["appointments", activeTab],
-    queryFn: async () => {
-      const url =
-        activeTab === "All"
-          ? "/api/appointments"
-          : `/api/appointments?status=${activeTab.toLowerCase()}`;
-
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch");
-      return res.json();
-    },
-  });
-
-  const filtered = appointments;
+  // Filter the parent-provided (user-scoped) appointments by the active tab.
+  const filtered =
+    activeTab === "All"
+      ? appointments
+      : appointments.filter((a) => capitalize(a.status) === activeTab);
 
   function getCount(tab) {
     if (tab === "All") return appointments.length;
-    return appointments.filter((a) => a.status === tab).length;
+    return appointments.filter((a) => capitalize(a.status) === tab).length;
   }
 
   return (

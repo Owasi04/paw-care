@@ -68,8 +68,8 @@ const Team = () => {
             animals.
           </p>
         </div>
-        <Button className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-teal-600 text-teal-600 hover:bg-teal-50/50 dark:border-teal-500 dark:text-teal-400 dark:hover:bg-teal-950/20 transition-all cursor-pointer whitespace-nowrap self-start">
-          <Link href={`/vets`}>
+        <Button className=" px-6 py-3 rounded-xl border-2 border-teal-600 text-teal-600 hover:bg-teal-50/50 dark:border-teal-500 dark:text-teal-400 dark:hover:bg-teal-950/20 transition-all cursor-pointer whitespace-nowrap self-start">
+          <Link href={`/vets`} className="flex items-center gap-2">
             <span className="font-bold">View all specialists </span>{" "}
             <ArrowRightCircle className="duration-150 transition" />
           </Link>

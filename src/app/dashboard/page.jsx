@@ -626,7 +626,7 @@ export default function DashboardPage() {
                     className="text-[#00685f] dark:text-[#6bd8cb] hover:text-[#005049] dark:hover:text-[#6bd8cb]/80"
                   >
                     <Link
-                      href={`/dashboard/my-appointments`}
+                      href={`/dashboard/my-schedule`}
                       className="flex items-center gap-1.5"
                     >
                       View All
@@ -708,7 +708,7 @@ export default function DashboardPage() {
                     className="text-[#00685f] dark:text-[#6bd8cb] hover:text-[#005049] dark:hover:text-[#6bd8cb]/80"
                   >
                     <Link
-                      href={`/dashboard/my-pets`}
+                      href={`/dashboard/patient-records`}
                       className="flex items-center gap-1.5"
                     >
                       View All
