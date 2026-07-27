@@ -30,7 +30,6 @@ export async function POST(request) {
 
       // vet id + name
       vetID,
-      vetId: vetID,
       vetName,
 
       // service + scheduling

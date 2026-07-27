@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Mail,
@@ -54,12 +54,10 @@ function FormFallback() {
 
 // ─── Inner Form Component ──────────────────────────────────────────────
 const AppointmentForm = () => {
-  // useSearchParams needs the <Suspense> boundary below, which was already
-  // in place — this replaces the old manual window.location.search parsing.
   const searchParams = useSearchParams();
-  const serviceFromUrl = searchParams.get("service") || "";
-  const vetIdFromUrl = searchParams.get("vetId") || "";
-  const vetNameFromUrl = searchParams.get("vetName") || "";
+  // console.log("search param", searchParams);
+  const serviceID = searchParams.get("service") || "";
+  // console.log("serviceFromUrl", serviceID);
 
   const {
     register,
@@ -68,24 +66,40 @@ const AppointmentForm = () => {
     setValue,
   } = useForm({
     defaultValues: {
-      serviceName: serviceFromUrl,
-      vetID: vetIdFromUrl,
-      vetName: vetNameFromUrl,
+      serviceName: "",
+      vetID: "",
+      vetName: "",
     },
   });
 
   const router = useRouter();
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   useEffect(() => {
-    setValue("serviceName", serviceFromUrl || "");
-    setValue("vetID", vetIdFromUrl || "");
-    setValue("vetName", vetNameFromUrl || "");
-  }, [serviceFromUrl, vetIdFromUrl, vetNameFromUrl, setValue]);
+    if (!serviceID) return;
+
+    const serviceData = async () => {
+      setLoadingDetails(true);
+      try {
+        const res = await fetch(`/api/services/${serviceID}`);
+        if (!res.ok) throw new Error("service not found");
+        const service = await res.json();
+        setValue("serviceName", service.name);
+
+        const vetID = service?.vet?._id;
+        setValue("vetID", vetID);
+        const vetName = service?.vet?.name || service.vetName || "";
+        setValue("vetName", vetName);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoadingDetails(false);
+      }
+    };
+    serviceData();
+  }, [setValue, serviceID]);
 
   const onSubmit = async (data) => {
-    const vetIDValue = data.vetID || vetIdFromUrl || "";
-    const vetNameValue = data.vetName || vetNameFromUrl || "";
-
     const formData = {
       userMail: user?.email,
       userName: user?.name,
@@ -93,8 +107,8 @@ const AppointmentForm = () => {
       petName: data.petName,
       petType: data.petType,
       petBreed: data.petBreed,
-      vetID: vetIDValue,
-      vetName: vetNameValue,
+      vetID: data.vetID,
+      vetName: data.vetName,
       appointmentTime: data.appointmentTime,
       appointmentDate: data.appointmentDate,
       serviceName: data.serviceName,
@@ -284,7 +298,6 @@ const AppointmentForm = () => {
             id="serviceName"
             type="text"
             readOnly
-            placeholder="e.g. Vaccination, Grooming, Checkup"
             {...register("serviceName", {
               required: "Service name is required",
               minLength: {
@@ -299,22 +312,10 @@ const AppointmentForm = () => {
           )}
         </div>
 
-        {/* Vet carried over from the service details page, when one is assigned */}
-        <input type="hidden" {...register("vetID")} />
-        {vetNameFromUrl && (
-          <div>
-            <label htmlFor="vetName" className={labelClass}>
-              Assigned Vet
-            </label>
-            <input
-              id="vetName"
-              type="text"
-              readOnly
-              {...register("vetName")}
-              className={`${fieldBase} border-gray-300 dark:border-gray-700 px-3 py-2 mt-1.5`}
-            />
-          </div>
-        )}
+        <div className="">
+          <input type="hidden" {...register("vetID")} />
+          <input type="hidden" {...register("vetName")} />
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>

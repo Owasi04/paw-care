@@ -94,10 +94,8 @@ export default function ServiceDetails({ id }) {
       window.location.href = "/auth/login";
       return;
     }
-    const params = new URLSearchParams({ service: service.name });
-    if (vetInfo?._id) params.set("vetId", vetInfo?._id);
-    if (vetInfo?.name) params.set("vetName", vetInfo?.name);
-    window.location.href = `/appointment?${params.toString()}`;
+    const params = new URLSearchParams({ service: service?._id });
+    window.location.href = `/appointment?${params}`;
   };
 
   if (isLoading) {

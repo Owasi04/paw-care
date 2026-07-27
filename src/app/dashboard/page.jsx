@@ -716,7 +716,7 @@ export default function DashboardPage() {
                     </Link>
                   </Button>
                 </div>
-                {allPets.length > 0 ? (
+                {/* {allPets.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {allPets.slice(0, 4).map((pet) => (
                       <PetCard key={pet?._id} pet={pet} />
@@ -737,7 +737,7 @@ export default function DashboardPage() {
                       </p>
                     </CardContent>
                   </Card>
-                )}
+                )} */}
               </section>
             </div>
 
