@@ -53,11 +53,15 @@ const roleConfig = {
     label: "Veterinarian",
     navItems: [
       { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-      { name: "My Schedule", icon: Calendar, href: "/dashboard/my-pets" },
+      {
+        name: "My Schedule",
+        icon: Calendar,
+        href: "/dashboard/my-appointments",
+      },
       {
         name: "Patient Records",
         icon: PawPrint,
-        href: "/dashboard/my-appointments",
+        href: "/dashboard/patient-records",
       },
       {
         name: "Lab Results",
@@ -83,6 +87,15 @@ const roleConfig = {
 };
 
 // ─── Reusable Sidebar component ─────────────────────────────
+
+const initials = User?.name
+  ? User.name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  : User?.email?.charAt(0).toUpperCase() || "U";
 
 function Sidebar({
   role,
@@ -164,10 +177,7 @@ function Sidebar({
         </Link>
         <div className="flex items-center gap-3 pt-2 px-1">
           <Avatar className="h-10 w-10 ring-2 ring-[#fea619]/20">
-            <AvatarImage
-              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=center&auto=format"
-              alt="User"
-            />
+            <AvatarImage src={initials} alt="User" />
             <AvatarFallback className="bg-[#fea619]/20 text-[#855300] dark:bg-[#fea619]/10 dark:text-[#ffb95f] text-sm font-medium">
               {user?.name?.charAt(0).toUpperCase() || "U"}
             </AvatarFallback>

@@ -77,7 +77,7 @@ export default function ServiceCard({
     } else if (!session?.user) {
       window.location.href = "/auth/login";
     } else {
-      window.location.href = `/appointment?service=${encodeURIComponent(service.name)}`;
+      window.location.href = `/appointment?service=${encodeURIComponent(serviceId)}`;
     }
   };
 

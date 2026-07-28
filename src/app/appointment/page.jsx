@@ -84,12 +84,18 @@ const AppointmentForm = () => {
         const res = await fetch(`/api/services/${serviceID}`);
         if (!res.ok) throw new Error("service not found");
         const service = await res.json();
-        setValue("serviceName", service.name);
+        setValue("serviceName", service.name, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
 
         const vetID = service?.vet?._id;
-        setValue("vetID", vetID);
+        setValue("vetID", vetID, { shouldValidate: true, shouldDirty: true });
         const vetName = service?.vet?.name || service.vetName || "";
-        setValue("vetName", vetName);
+        setValue("vetName", vetName, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
       } catch (error) {
         console.log(error);
       } finally {
@@ -101,6 +107,7 @@ const AppointmentForm = () => {
 
   const onSubmit = async (data) => {
     const formData = {
+      serviceName: data.serviceName,
       userMail: user?.email,
       userName: user?.name,
       userPhone: data.userPhone,
@@ -111,7 +118,6 @@ const AppointmentForm = () => {
       vetName: data.vetName,
       appointmentTime: data.appointmentTime,
       appointmentDate: data.appointmentDate,
-      serviceName: data.serviceName,
     };
 
     try {
