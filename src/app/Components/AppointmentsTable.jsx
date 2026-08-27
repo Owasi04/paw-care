@@ -72,7 +72,7 @@ function StatusBadge({ status }) {
   );
 }
 
-function AppointmentRow({ appointment, onCancel }) {
+function AppointmentRow({ appointment, onCancel, canCancel = true }) {
   const {
     petName = "Unknown",
     petType = "",
@@ -145,31 +145,33 @@ function AppointmentRow({ appointment, onCancel }) {
       </td>
 
       {/* Actions */}
-      <td className="px-6 py-4 text-right">
-        <div className="flex justify-end items-center gap-1">
-          {(status === "pending" || status === "Pending") && (
-            <button
-              onClick={() => onCancel(appointment?._id)}
-              title="Cancel appointment"
-              className="flex items-center cursor-pointer border gap-1 p-2 rounded-lg text-on-surface-variant hover:bg-error-container hover:text-error dark:hover:bg-rose-950 dark:hover:text-rose-400 transition-all active:scale-95 border-surface-variant dark:border-zinc-700"
-            >
-              <span>Cancel</span>
-              <TrashIcon size={20} className="text-current" />
-            </button>
-          )}
-        </div>
-      </td>
+      {canCancel && (
+        <td className="px-6 py-4 text-right">
+          <div className="flex justify-end items-center gap-1">
+            {(status === "pending" || status === "Pending") && (
+              <button
+                onClick={() => onCancel(appointment?._id)}
+                title="Cancel appointment"
+                className="flex items-center cursor-pointer border gap-1 p-2 rounded-lg text-on-surface-variant hover:bg-error-container hover:text-error dark:hover:bg-rose-950 dark:hover:text-rose-400 transition-all active:scale-95 border-surface-variant dark:border-zinc-700"
+              >
+                <span>Cancel</span>
+                <TrashIcon size={20} className="text-current" />
+              </button>
+            )}
+          </div>
+        </td>
+      )}
     </tr>
   );
 }
 
-function SkeletonRows() {
+function SkeletonRows({ columnCount = 6 }) {
   return Array.from({ length: 3 }).map((_, i) => (
     <tr
       key={i}
       className="border-b border-surface-variant dark:border-zinc-800"
     >
-      {Array.from({ length: 6 }).map((_, j) => (
+      {Array.from({ length: columnCount }).map((_, j) => (
         <td key={j} className="px-6 py-4">
           <div className="h-4 bg-surface-container-low dark:bg-zinc-800 rounded-full animate-pulse w-3/4" />
         </td>
@@ -185,8 +187,20 @@ export default function AppointmentsTable({
   isLoading = false,
   isError = false,
   onCancel = () => {},
+  // Vets view this table as the clinic's schedule; cancelling is the pet
+  // owner's call, so the Action column is dropped entirely for them.
+  canCancel = true,
 }) {
   const [activeTab, setActiveTab] = useState("All");
+
+  const columns = [
+    "Pet",
+    "Owner",
+    "Service",
+    "Date & Time",
+    "Status",
+    ...(canCancel ? ["Action"] : []),
+  ];
 
   // Filter the parent-provided (user-scoped) appointments by the active tab.
   const filtered =
@@ -250,18 +264,13 @@ export default function AppointmentsTable({
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-container-low dark:bg-zinc-950 border-b border-surface-variant dark:border-zinc-800">
-                  {[
-                    "Pet",
-                    "Owner",
-                    "Service",
-                    "Date & Time",
-                    "Status",
-                    "Action",
-                  ].map((col, i) => (
+                  {columns.map((col, i) => (
                     <th
-                      key={i}
+                      key={col}
                       className={`px-6 py-3.5 font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant ${
-                        i === 5 ? "text-right" : ""
+                        i === columns.length - 1 && canCancel
+                          ? "text-right"
+                          : ""
                       }`}
                     >
                       {col}
@@ -271,10 +280,10 @@ export default function AppointmentsTable({
               </thead>
               <tbody className="divide-y divide-surface-variant dark:divide-zinc-800">
                 {isLoading ? (
-                  <SkeletonRows />
+                  <SkeletonRows columnCount={columns.length} />
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={6}></td>
+                    <td colSpan={columns.length}></td>
                   </tr>
                 ) : (
                   filtered.map((appt) => (
@@ -282,6 +291,7 @@ export default function AppointmentsTable({
                       key={appt._id}
                       appointment={appt}
                       onCancel={onCancel}
+                      canCancel={canCancel}
                     />
                   ))
                 )}

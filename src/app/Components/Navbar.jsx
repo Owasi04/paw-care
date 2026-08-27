@@ -61,6 +61,7 @@ const UserAvatarDropdown = () => {
   const router = useRouter();
 
   const user = session?.user;
+  const role = user?.role;
 
   const initials = user?.name
     ? user.name
@@ -136,6 +137,9 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const { data: session } = useSession();
+  const user = session?.user;
+  const role = user?.role;
+
   const pathname = usePathname();
   const router = useRouter();
   const isDashboardRoute = pathname?.startsWith("/dashboard");
@@ -152,12 +156,14 @@ const Navbar = () => {
       { title: "About", href: "/about" },
       { title: "Contact", href: "/contact" },
     ];
-    if (session?.user) {
+    if (role == "user") {
       base.push({ title: "Pets", href: "/pets" });
+      base.push({ title: "Appointments", href: "/dashboard/my-appointments" });
+    } else if (role == "vet") {
       base.push({ title: "Appointments", href: "/dashboard/my-appointments" });
     }
     return base;
-  }, [session]);
+  }, [role]);
 
   // Improved isActive: matches exact or sub‑route, but avoids false positives
   const isActive = (href) => {

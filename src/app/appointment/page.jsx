@@ -12,6 +12,7 @@ import {
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getLocalDateString } from "@/app/lib/dateUtils";
 
 const fieldBase =
   "block w-full rounded-lg border bg-white dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 " +
@@ -106,16 +107,16 @@ const AppointmentForm = () => {
   }, [setValue, serviceID]);
 
   const onSubmit = async (data) => {
+    // Only send what the server can't know: the pet, the phone, the slot, and
+    // which service. Identity comes from the session and the vet assignment +
+    // category are read off the service document server-side.
     const formData = {
+      serviceID,
       serviceName: data.serviceName,
-      userMail: user?.email,
-      userName: user?.name,
       userPhone: data.userPhone,
       petName: data.petName,
       petType: data.petType,
       petBreed: data.petBreed,
-      vetID: data.vetID,
-      vetName: data.vetName,
       appointmentTime: data.appointmentTime,
       appointmentDate: data.appointmentDate,
     };
@@ -130,6 +131,9 @@ const AppointmentForm = () => {
       if (result?.ok) {
         toast.success("Appointment Successful");
         router.push("/services");
+      } else {
+        const { error } = await result.json().catch(() => ({}));
+        toast.error(error || "Could not book the appointment");
       }
     } catch (error) {
       toast.error(error.message);
@@ -140,7 +144,7 @@ const AppointmentForm = () => {
 
   const user = session?.user;
 
-  const todayString = new Date().toLocaleDateString("en-CA");
+  const todayString = getLocalDateString();
 
   // ─── Render ──────────────────────────────────────────────────────────
   return (

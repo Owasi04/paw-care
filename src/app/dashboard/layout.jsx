@@ -88,14 +88,6 @@ const roleConfig = {
 
 // ─── Reusable Sidebar component ─────────────────────────────
 
-const initials = User?.name
-  ? User.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
-  : User?.email?.charAt(0).toUpperCase() || "U";
 
 function Sidebar({
   role,
@@ -177,9 +169,16 @@ function Sidebar({
         </Link>
         <div className="flex items-center gap-3 pt-2 px-1">
           <Avatar className="h-10 w-10 ring-2 ring-[#fea619]/20">
-            <AvatarImage src={initials} alt="User" />
+            <AvatarImage src={user?.image} alt="User" />
             <AvatarFallback className="bg-[#fea619]/20 text-[#855300] dark:bg-[#fea619]/10 dark:text-[#ffb95f] text-sm font-medium">
-              {user?.name?.charAt(0).toUpperCase() || "U"}
+              {user?.name
+                ? user.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2)
+                : user?.email?.charAt(0).toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">

@@ -8,7 +8,8 @@ export async function GET(request) {
     const limit = request.nextUrl.searchParams.get("limit");
     const vetCollection = await dbConnect("vet");
 
-    let query = vetCollection.find();
+    // `email` links a vet profile to its login account; it is not public.
+    let query = vetCollection.find({}, { projection: { email: 0 } });
     if (limit) {
       query = query.limit(Number(limit));
     }

@@ -6,13 +6,33 @@ import {
   GraduationCap,
   Footprints,
   PawPrint,
+  BedDouble,
+  Smile,
+  Sparkles,
+  Siren,
+  ScanLine,
+  Microscope,
+  Salad,
+  BriefcaseMedical,
+  Syringe,
 } from "lucide-react";
 
+// Covers every `category` currently present in the services collection, so the
+// vet dashboard's filter chips are visually distinguishable.
 export const CATEGORY_ICONS = {
+  Boarding: BedDouble,
+  Dental: Smile,
+  Dermatology: Sparkles,
+  Emergency: Siren,
   Grooming: Scissors,
-  Veterinary: Stethoscope,
   "Health Checkup": Stethoscope,
+  Identification: ScanLine,
+  Imaging: Microscope,
+  Nutrition: Salad,
+  Surgery: BriefcaseMedical,
   Training: GraduationCap,
+  Vaccination: Syringe,
+  Veterinary: Stethoscope,
   Walking: Footprints,
 };
 

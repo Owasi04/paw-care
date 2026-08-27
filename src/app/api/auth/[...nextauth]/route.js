@@ -91,12 +91,17 @@ export const authOptions = {
         token.photoURL =
           user.image || user.photoURL || existingUser.photoURL || null;
         token.role = user.role || existingUser.role || "user";
+        // Links a vet login to its `vet` collection profile.
+        token.vetID = existingUser.vetID ?? null;
       } else if (token.email) {
         const usersCollection = await dbConnect("users");
         const dbUser = await usersCollection.findOne({ email: token.email });
         if (dbUser) {
           token.photoURL = dbUser.photoURL || token.photoURL || null;
           token.role = dbUser.role || token.role || "user";
+          // Re-read on refresh so an account linked after sign-in picks up its
+          // vetID without the vet having to log out and back in.
+          token.vetID = dbUser.vetID ?? null;
         }
       }
       return token;
@@ -110,6 +115,7 @@ export const authOptions = {
         session.user.image = token.photoURL;
         session.user.photoURL = token.photoURL;
         session.user.role = token.role || "user";
+        session.user.vetID = token.vetID ?? null;
       }
       return session;
     },

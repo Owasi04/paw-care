@@ -10,6 +10,9 @@ import { Button } from "@base-ui/react";
 const MyAppointments = () => {
   const { data: session } = useSession();
   const userEmail = session?.user?.email;
+  // The same page serves both roles, but the API scopes the rows differently:
+  // owners get their bookings, vets get their assigned schedule.
+  const isVet = session?.user?.role === "vet";
 
   const {
     data: userAppointments = [],
@@ -18,7 +21,8 @@ const MyAppointments = () => {
   } = useQuery({
     queryKey: ["userAppointments", userEmail],
     queryFn: async () => {
-      const res = await fetch(`/api/appointments?userMail=${userEmail}`);
+      // No query params: /api/appointments scopes to the session itself.
+      const res = await fetch(`/api/appointments`);
       if (!res.ok) throw new Error("Failed to fetch appointments");
       return res.json();
     },
@@ -89,20 +93,24 @@ const MyAppointments = () => {
       <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
         <div>
           <h1 className="font-headline-lg text-headline-lg text-on-surface mb-1">
-            My Appointments
+            {isVet ? "My Schedule" : "My Appointments"}
           </h1>
           <p className="text-on-surface-variant font-body-md text-body-md">
-            Keep track of your pet's health journeys and upcoming visits.
+            {isVet
+              ? "Every appointment booked with you, across all your services."
+              : "Keep track of your pet's health journeys and upcoming visits."}
           </p>
         </div>
 
-        <button className="bg-teal-800 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-label-md text-label-md hover:shadow-md transition-all active:scale-95 flex-shrink-0">
-          {" "}
-          <Link href={`/services`} className="inline-flex items-center gap-2">
-            <PlusCircle size={20} className="text-current" />
-            Book Appointment
-          </Link>
-        </button>
+        {!isVet && (
+          <button className="bg-teal-800 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-label-md text-label-md hover:shadow-md transition-all active:scale-95 flex-shrink-0">
+            {" "}
+            <Link href={`/services`} className="inline-flex items-center gap-2">
+              <PlusCircle size={20} className="text-current" />
+              Book Appointment
+            </Link>
+          </button>
+        )}
       </header>
 
       <AppointmentsTable
@@ -110,6 +118,7 @@ const MyAppointments = () => {
         isLoading={isLoading}
         isError={isError}
         onCancel={handleCancel}
+        canCancel={!isVet}
       />
     </main>
   );
